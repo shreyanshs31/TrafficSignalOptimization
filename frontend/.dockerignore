@@ -1,0 +1,14 @@
+# Ignore node_modules and build for frontend
+node_modules/
+dist/
+dist-ssr/
+
+# Ignore git and OS files
+.git/
+.gitignore
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
