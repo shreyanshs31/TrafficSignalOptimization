@@ -97,8 +97,5 @@ Project Link: [https://github.com/shreyanshs31/TrafficSignalOptimization](https:
 [stars-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/stargazers
 [license-shield]: https://img.shields.io/github/license/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
 [license-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/blob/master/LICENSE.txt
-<<<<<<< Updated upstream
-=======
 [issues-shield]: https://img.shields.io/github/issues/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
 [issues-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/issues
->>>>>>> Stashed changes
