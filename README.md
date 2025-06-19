@@ -20,7 +20,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]]()
+https://github.com/user-attachments/assets/cd23532a-9a5c-47aa-b6b7-d025023a55c8
 
 We developed an intelligent traffic management system that dynamically adjusts signal timings based on real-time traffic conditions. The system uses YOLOv8 to detect and count vehicles at intersections and applies Fuzzy Logic to determine optimal signal durations, aiming to minimize congestion and reduce waiting time.
 
