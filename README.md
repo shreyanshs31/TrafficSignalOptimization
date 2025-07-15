@@ -80,7 +80,7 @@ Distributed under the GPL-3.0. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@ShreyanshS31](https://x.com/ShreyanshS31)
+Name - [@ShreyanshS31](https://x.com/ShreyanshS31)
 
 Project Link: [https://github.com/shreyanshs31/TrafficSignalOptimization](https://github.com/shreyanshs31/TrafficSignalOptimization)
 
