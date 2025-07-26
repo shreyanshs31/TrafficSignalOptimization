@@ -7,3 +7,4 @@ matplotlib
 pydantic
 uvicorn
 torch
+python-multipart
