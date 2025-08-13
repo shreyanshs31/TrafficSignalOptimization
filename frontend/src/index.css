@@ -1,4 +1,8 @@
-* {
+@import "tailwindcss";
+
+:root{
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -7,8 +11,7 @@ body {
     background: #e5e4e5;
 }
 
-header {
-  background-image: url("./assets/bg.png");
+/* header {
   position: relative;
   height: 100vh;
   width: 100%;
@@ -16,25 +19,12 @@ header {
   background-position: center;
   background-repeat: no-repeat;
   padding-top: 1em;
-}
+} */
 
-.nav {
-  background: #9090db;
-  color:#d6d8dc;
-  border-radius: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  max-width: 38%;
-  margin: 0 auto;
-  padding: 1em 2em;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
-}
-
-.title{
+/* .title{
   font-size: 2.2rem;
   font-weight: 600;
-}
+} */
 
 
 .para-cont {
@@ -50,7 +40,7 @@ header {
 }
 
 .para-text {
-  background:#9090db; 
+  background:#9810fa; 
   color: #e5e4e5;
   padding: 1em 1.5em;
   border-radius: 8px;
@@ -62,8 +52,7 @@ header {
 }
 
 .uploading-cont {
-  background: #9090db;
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 1em;
 }
 
@@ -72,59 +61,6 @@ header {
   align-items: center;
   justify-content: center;
   color: #dadbdd;
-}
-
-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 1.5em 2em; /* row gap, column gap */
-  max-width: 70%;
-  margin: 2.5em auto;
-  padding: 2em;
-  background: #e5e5fc;
-  border-radius: 16px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-}
-
-form label {
-  display: block;
-  margin-bottom: .5em;
-  font-weight: 500;
-  color: #222357;
-  font-size: 1.5em;
-}
-
-form input[type="file"] {
-  display: block;
-  width: 100%;
-}
-
-form > div {
-  display: flex;
-  flex-direction: column;
-}
-
-form button {
-  grid-column: 1 / span 2; /* spans both columns */
-  padding: .75em 0;
-  font-size: 1.1rem;
-  background: #222357;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: .75em;
-  transition: background 0.2s;
-}
-form button:hover {
-  background: #6c63ff;
-}
-
-.img-card-cont > img{
-  height: 15.6em;
-  width: 100%;
 }
 
 .analysis-cont {
