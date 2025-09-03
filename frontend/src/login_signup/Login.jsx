@@ -6,7 +6,7 @@ export default function Login() {
     return(
         <div className="grid grid-cols-2 ">
             <div className="flex flex-col justify-center px-30 min-h-screen">
-                <h2 className="text-sm font-bold pb-10">Traffic Signal Optimizer</h2>
+                <h2 className="text-md font-bold pb-10">Traffic Signal Optimizer</h2>
                 <p className="text-5xl font-bold pb-4">Namaste, <br /> Welcome back</p>
                 <p className="text-sm font-normal pb-2 text-neutral-400">Hey, welcome back lets clear the traffic</p>
                 <div className="w-105">

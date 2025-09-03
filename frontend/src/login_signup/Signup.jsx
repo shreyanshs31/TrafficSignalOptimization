@@ -7,7 +7,7 @@ export default function Signup() {
     return(
         <div className="grid grid-cols-2 ">
             <div className="flex flex-col justify-center px-30 min-h-screen">
-                <h2 className="text-sm font-bold pb-4">Traffic Signal Optimizer</h2>
+                <h2 className="text-md font-bold pb-4">Traffic Signal Optimizer</h2>
                 <p className="text-5xl font-bold">Namaste, <br /> Get started now</p>
                 <div className="w-105">
                     <form action="">

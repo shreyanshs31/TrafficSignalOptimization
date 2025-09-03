@@ -8,7 +8,7 @@ export default function ForgotPass() {
     return (
         <div className="grid grid-cols-2">
             <div className="flex flex-col justify-center px-30 min-h-screen">
-                <h2 className="text-sm font-bold pb-10">Traffic Signal Optimizer</h2>
+                <h2 className="text-md font-bold pb-10">Traffic Signal Optimizer</h2>
                 <p className="text-5xl font-bold pb-4">Forgot Password, <br /> We got you covered</p>
                 <p className="text-sm font-normal pb-2 text-neutral-500">Enter your linked email we will send an OTP</p>
                 <div className="w-105">
