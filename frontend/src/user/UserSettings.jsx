@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import UserNavBar from './UserNavBar.jsx';
 import UserSideBar from './UserSideBar.jsx';
+import { IoMail } from "react-icons/io5";
+import { MdOutlinePassword } from "react-icons/md";
+import { Link } from "react-router-dom";
+
 
 
 function UserSettings() {
@@ -12,6 +16,11 @@ function UserSettings() {
   const [emails, setEmails] = useState(['example@email.com', 'example2@email.com'])
   const [primaryEmail, setPrimaryEmail] = useState(emails[0]);
   const [emailAdd, setEmailAdd] = useState('')
+  const [changePasswordToggle, setChangePasswordToggle] = useState(false)
+
+  function handleChangePasswordToggle() {
+    setChangePasswordToggle(prev=>!prev)
+  }
 
   function handleDeleteEmail(emailToDelete) {
     const newEmails = emails.filter(email => email !== emailToDelete);
@@ -81,7 +90,52 @@ function UserSettings() {
             <UserNavBar />
             <div className='py-6 px-12'>
               {/* Password & Authentication*/}
+              <div className='border-none pt-2 pb-5 pr-2'>
+                <h1 className='text-neutral-800 text-2xl font-medium mb-2'>Sign in Methods</h1>
+                <hr className='w-full text-neutral-400 -mx-2' />
+                <div className='border border-neutral-400 rounded-md pt-2 pb-2 px-2 mt-4 -mx-2'>
+                  {/* Email manage container */}
+                  <div className='flex justify-between mt-1 ml-1'>
+                    <div className='flex '>
+                      <IoMail className='w-7 h-7 mt-1'/>
+                      <div className='ml-3'>
+                        <p className='font-semibold'>Email</p>
+                        <p className='text-neutral-600 mb-3 text-sm'>Verified email configured</p>
+                      </div>
+                    </div>
+                    <button className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>Manage</button>
+                  </div>
+                  <hr className='w-full text-neutral-400 mt-1 mb-3' />
+                  {/* Password manage container */}
+                  
+                  <div className='flex justify-between mt-1 ml-1'>
+                    <div className='flex '>
+                      <MdOutlinePassword className='w-7 h-7 mt-1'/>
+                      <div className='ml-3'>
+                        <p className='font-semibold'>Password</p>
+                        <p className='text-neutral-600 mb-3 text-sm'>Configured</p>
+                      </div>
+                    </div>
+                    <button onClick={handleChangePasswordToggle} className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>{changePasswordToggle?"Hide":"Change Password"}</button>
+                  </div>
+                  {changePasswordToggle?<>
+                    <div className='px-1 ml-10 w-50 flex-initial'>
+                      <label htmlFor="" name="" id='' className='font-semibold'>Old password</label>
+                      <input type="text" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
+                      <label htmlFor="" className='font-semibold'>New password</label>
+                      <input type="text" name="" id="" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
+                      <label htmlFor="" className='font-semibold'>Confirm new password</label>
+                      <input type="text" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
+                    </div>
+                    <div className='px-1 ml-10'>
+                      <p className='text-neutral-600 mb-3 text-sm'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
+                      <button className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200'>Update Password</button>
+                      <Link to="/forgotpass" className='text-blue-700'>I forgot my password</Link>
 
+                    </div>
+                  </>:null}
+                </div>
+              </div>
               {/* Email */}
               <div className='border-none pt-2 pb-5 pr-2'>
                 <h1 className='text-neutral-800 text-2xl font-medium mb-2'>Email</h1>
