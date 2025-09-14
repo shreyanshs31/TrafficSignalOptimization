@@ -12,7 +12,7 @@ export default function UserSideBar() {
                         }`)
     
     return (
-        <div className="flex flex-col justify-between h-lvh sticky overflow-x-hidden min-w-60 left-0 top-0 px-7 py-8">
+        <div className="flex flex-col justify-between h-lvh sticky overflow-x-hidden min-w-70 left-0 top-0 px-7 py-8">
             <div className="flex flex-col">
                 <NavLink to='/userdashboard' className="mb-10">
                     <span className="font-bold text-xl text-violet-600">
