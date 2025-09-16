@@ -1,8 +1,9 @@
 import { FaLock } from "react-icons/fa";
-import forgotImg from "../assets/forgotimg1.png"
 import { IoMdMail } from "react-icons/io";
 import { IoIosArrowBack } from "react-icons/io";
+import { Link } from "react-router-dom";
 
+import forgotImg from "../assets/forgotimg1.png";
 
 export default function ForgotPass() {
     return (
@@ -30,7 +31,8 @@ export default function ForgotPass() {
                         <button className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300">Submit</button>
                         <div className="w-105 flex justify-center items-center text-sm text-center mt-5">
                             <IoIosArrowBack className="absolute left-67 "/>
-                            <p className="font-semibold">Back to <a className="font-semibold hover:underline hover:text-violet-800" href="/login">Login</a></p>
+                            <p className="font-semibold">Back to
+                            <Link className="ml-1 font-semibold hover:underline hover:text-violet-800" to="/login">Login</Link></p>
                         </div>
                     </form>
                 </div>

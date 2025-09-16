@@ -1,6 +1,8 @@
 import { FaLock } from "react-icons/fa";
 import { FaBuildingShield } from "react-icons/fa6";
 import { IoMdMail } from "react-icons/io";
+import { Link } from "react-router-dom";
+
 import loginImg from "../assets/loginimg1.jpg"
 
 export default function Signup() {
@@ -34,11 +36,12 @@ export default function Signup() {
                         </div>
                         <div className="mt-10 mb-2 w-105 text-sm -ml-3.5 mr-3.5">
                             <label className="ml-4 accent-violet-400 mr-1" htmlFor=""><input className="accent-violet-400 mr-1" type="checkbox" required/>I agree to</label>
-                            <a className="hover:text-violet-800 hover:underline" href="/termsandconditions">Terms & Privacy?</a>
+                            <Link className="hover:text-violet-800 hover:underline" to="/termsandconditions">Terms & Privacy?</Link>
                         </div>
                         <button className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300">Register</button>
                         <div className="w-105 text-sm text-center mt-5">
-                            <p className="font-semibold">Have an account? <a className="font-semibold hover:underline hover:text-violet-800" href="/login">Login</a></p>
+                            <p className="font-semibold">Have an account?
+                            <Link className="ml-1 font-semibold hover:underline hover:text-violet-800" to="/login">Login</Link></p>
                         </div>
                     </form>
                 </div>

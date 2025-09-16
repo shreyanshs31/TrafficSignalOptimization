@@ -1,6 +1,7 @@
 import { FaLock } from "react-icons/fa";
 import loginImg from "../assets/loginimg1.jpg"
 import { IoMdMail } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 export default function Login() {
     return(
@@ -27,11 +28,12 @@ export default function Login() {
                         </div>
                         <div className="w-105 flex justify-between text-sm -ml-3.5 mr-3.5">
                             <label className="ml-4 accent-violet-400 mr-1" htmlFor=""><input className="accent-violet-400 mr-1" type="checkbox"/>Remember me</label>
-                            <a className="hover:text-violet-800 hover:underline" href="/forgotpass">Forgot password?</a>
+                            <Link className="hover:text-violet-800 hover:underline" to="/forgotpass">Forgot password?</Link>
                         </div>
                         <button className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300">Login</button>
                         <div className="w-105 text-sm text-center mt-5">
-                            <p className="font-semibold">Don't have an account? <a className="font-semibold hover:underline hover:text-violet-800" href="/signup">Register</a></p>
+                            <p className="font-semibold">Don't have an account?
+                            <Link className="ml-1 font-semibold hover:underline hover:text-violet-800" to="/signup">Register</Link> </p>
                         </div>
                     </form>
                 </div>

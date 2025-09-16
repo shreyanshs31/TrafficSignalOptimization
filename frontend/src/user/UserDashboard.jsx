@@ -17,9 +17,9 @@ function UserDashboard() {
               </div>
               {/* week month and year report & what type of vehicles in pie chart */}
               <div className='flex mb-15 mt-8'>
-                {/* week month and year chats */}
                 <div className='bg-violet-400 mr-5 w-1/2 h-90 border-none rounded-4xl'>
                 <div>
+                  {/* Drowdown option */}
                   <div className='mt-8 text-center text-neutral-800 text-lg font-semibold'>
                     <select 
                     className='focus:outline-none'
