@@ -61,6 +61,10 @@ function CrossingContainer(props) {
             <VideoContainer isediting={isEditing}/>
             <VideoContainer isediting={isEditing}/>
             <VideoContainer isediting={isEditing}/>
+            <VideoContainer isediting={isEditing}/>
+            <VideoContainer isediting={isEditing}/>
+            <VideoContainer isediting={isEditing}/>
+            <VideoContainer isediting={isEditing}/>
 
         </div>
     </div>
