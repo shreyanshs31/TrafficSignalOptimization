@@ -7,7 +7,8 @@ import Termsandconditions from "./login_signup/Termsandconditions"
 import UserDashboard from './user/UserDashboard.jsx';
 import UserLiveFeed from './user/UserLiveFeed.jsx';
 import UserSettings from './user/UserSettings.jsx';
-
+import UserPageLayout from "./user/Layout/UserPageLayout.jsx"
+import ProtectedRoute from "./auth/ProtectedRoute.jsx"
 
 export default function App() {
   return (
@@ -17,9 +18,13 @@ export default function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgotpass" element={<ForgotPass />} />
       <Route path="/termsandconditions" element={<Termsandconditions />} />
-      <Route path="/userdashboard" element={<UserDashboard/>}/>
-      <Route path="/userlivefeed" element={<UserLiveFeed/>}/>
-      <Route path="/usersettings" element={<UserSettings/>} />
+      <Route element={<ProtectedRoute />}> 
+        <Route element={<UserPageLayout />}>
+          <Route path="/user/dashboard" element={<UserDashboard/>}/>
+          <Route path="/user/livefeed" element={<UserLiveFeed/>}/>
+          <Route path="/user/settings" element={<UserSettings/>} />
+        </Route>
+      </Route>
     </Routes>
   )
 }

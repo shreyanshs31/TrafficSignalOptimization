@@ -2,8 +2,42 @@ import { FaLock } from "react-icons/fa";
 import loginImg from "../assets/loginimg1.jpg"
 import { IoMdMail } from "react-icons/io";
 import { Link } from "react-router-dom";
+import supabase  from "../auth/supabaseClient";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+    const[email, setEmail] = useState('')
+    const[password, setPassword] = useState('')
+    const[loading, setLoading] = useState(false)
+    const navigate = useNavigate()
+
+    const handleLogin = async (e)=> {
+        e.preventDefault()
+        setLoading(true)
+        //Authentication with Supabase
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            })
+    
+            if(error) {
+                alert("Login faild: "+ error.message)
+            } else {
+                console.log("User logged in")
+                //use :userId for per user different dashboard--------------
+                navigate('/user/dashboard')
+            }
+
+        } catch (err) {
+            console.error(err)
+            alert("Login failed")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return(
         <div className="grid grid-cols-2 ">
             <div className="flex flex-col justify-center px-30 min-h-screen">
@@ -11,31 +45,63 @@ export default function Login() {
                 <p className="text-5xl font-bold pb-4">Namaste, <br /> Welcome back</p>
                 <p className="text-sm font-normal pb-2 text-neutral-400">Hey, welcome back lets clear the traffic</p>
                 <div className="w-105">
-                    <form action="">
+                    <form onSubmit={handleLogin}>
                         <div className="relative w-full h-12 my-10">
-                            <label htmlFor="loginemail" className="p-2 text-lg">Email</label>
-                            <input id="loginemail" autoFocus className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" type="email"
-                            placeholder="exmaple@email.com" 
+                            <label 
+                                htmlFor="loginemail" 
+                                className="p-2 text-lg">
+                                Email
+                            </label>
+                            <input 
+                                id="loginemail" 
+                                autoFocus 
+                                className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" 
+                                type="email"
+                                value={email}
+                                placeholder="exmaple@email.com" 
+                                onChange={(e)=> setEmail(e.target.value)}
                             required/>
                             <IoMdMail className="absolute right-5 top-9/10 text-md"/>
                         </div>
                         <div className="relative w-full h-12 my-10">
-                            <label htmlFor="loginpassword" className="p-2 text-lg">Password</label>
-                            <input minLength="8" id="loginpassword" className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" type="password"
-                            placeholder="*****" 
+                            <label 
+                                htmlFor="loginpassword" 
+                                className="p-2 text-lg">
+                                Password
+                            </label>
+                            <input 
+                                minLength="8" 
+                                id="loginpassword" 
+                                className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" 
+                                type="password"
+                                value={password}
+                                onChange={(e)=>setPassword(e.target.value)}
+                                placeholder="*****" 
                             required/>
                             <FaLock className="absolute right-5 top-9/10 text-md"/>
                         </div>
                         <div className="w-105 flex justify-between text-sm -ml-3.5 mr-3.5">
-                            <label className="ml-4 accent-violet-400 mr-1" htmlFor=""><input className="accent-violet-400 mr-1" type="checkbox"/>Remember me</label>
+                            <label 
+                                className="ml-4 accent-violet-400 mr-1" 
+                                htmlFor="loginrememberme">
+                                    <input
+                                    id="loginrememberme"
+                                    className="accent-violet-400 mr-1" 
+                                    type="checkbox"/>Remember me
+                            </label>
                             <Link className="hover:text-violet-800 hover:underline" to="/forgotpass">Forgot password?</Link>
                         </div>
-                        <button className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300">Login</button>
-                        <div className="w-105 text-sm text-center mt-5">
-                            <p className="font-semibold">Don't have an account?
-                            <Link className="ml-1 font-semibold hover:underline hover:text-violet-800" to="/signup">Register</Link> </p>
-                        </div>
+                        <button 
+                            type="submit"
+                            className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300" 
+                            disabled={loading}>
+                            {loading? "Logging in...":"Login"}
+                        </button>
                     </form>
+                    <div className="w-105 text-sm text-center mt-5">
+                        <p className="font-semibold">Don't have an account?
+                        <Link className="ml-1 font-semibold hover:underline hover:text-violet-800" to="/signup">Register</Link> </p>
+                    </div>
                 </div>
             </div>
             <div className="relative mr-8 max-h-lvh">

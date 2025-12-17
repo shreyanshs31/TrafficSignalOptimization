@@ -59,7 +59,7 @@ export default function UserNavBar () {
                 </div>
                 {notificationElmt}
             </div>:null}
-            <Link to="/usersettings">
+            <Link to="/user/settings">
                 <FaUser className={style}/>
             
             </Link>
