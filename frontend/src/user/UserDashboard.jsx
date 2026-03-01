@@ -64,6 +64,7 @@ function UserDashboard() {
       time: `${hour}:00`,
       count: count
     }));
+    console.log(hourlyStats)
     setHourlyTraffic(hourlyStats)
 
     const typeMap = {}
@@ -99,7 +100,7 @@ function UserDashboard() {
   return (
     <div>
       {/* hourly report of cars */}
-      <div className='relative bg-neutral-800 mr-11 mt-1 w-auto h-110 border-none rounded-4xl'>
+      <div className='relative bg-neutral-800 mr-11 mt-1 w-auto h-100 border-none rounded-4xl'>
         <h4 className='pt-5 text-center text-neutral-200 text-lg font-semibold'>Today Hourly Traffic</h4>
         <button 
           onClick={handleRefresh} 

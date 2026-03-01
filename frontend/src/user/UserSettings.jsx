@@ -1,83 +1,142 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoMail } from "react-icons/io5";
 import { MdOutlinePassword } from "react-icons/md";
-import { Link } from "react-router-dom";
-
+import supabase from '../auth/supabaseClient';
 
 
 function UserSettings() {
+  const [originalSettings, setOriginalSettings] = useState({})
+  const [isDirty, setIsDirty] = useState(false)
   const [cameraFailToggle, setCameraFailToggle] = useState(true)
   const [accidentDetectionToggle, setAccidentDetectionToggle] = useState(true)
   const [manualOverrideToggle, setManualOverrideToggle] = useState(true)
   const [intersectionToggle , setIntersectionToggle] = useState(true)
   const [reportsToggle, setReportsToggle] = useState(true)
-  const [emails, setEmails] = useState(['example@email.com', 'example2@email.com'])
-  const [primaryEmail, setPrimaryEmail] = useState(emails[0]);
-  const [emailAdd, setEmailAdd] = useState('')
+  const [emails, setEmails] = useState('')
   const [changePasswordToggle, setChangePasswordToggle] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState({ text: '', type: '' })
 
   function handleChangePasswordToggle() {
     setChangePasswordToggle(prev=>!prev)
   }
 
-  function handleDeleteEmail(emailToDelete) {
-    const newEmails = emails.filter(email => email !== emailToDelete);
-    setEmails(newEmails);
-    if (primaryEmail === emailToDelete && newEmails.length > 0) {
-      setPrimaryEmail(newEmails[0]);
+  async function handleUpdatePassword() {
+    setMessage({ text: '', type: '' })
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ text: "Passwords do not match.", type: 'error' })
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setMessage({ text: "Password should be at least 6 characters.", type: 'error' })
+      return
+    }
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setMessage({ text: "Password updated successfully!", type: 'success' })
+      setNewPassword('')
+      setConfirmPassword('')
+      setChangePasswordToggle(false)
+    } catch (error) {
+      setMessage({ text: error.message, type: 'error' })
+    } finally {
+      setLoading(false)
     }
   }
-  function addEmailToList() {
-    if(emailAdd && !emails.includes(emailAdd)) {
-      setEmails([...emails, emailAdd])
-      setEmailAdd('')
+
+  async function handleSaveSubscriptions() {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          camera_fail: cameraFailToggle,
+          accident_detection: accidentDetectionToggle,
+          manual_override: manualOverrideToggle,
+          intersection_updates: intersectionToggle,
+          reports: reportsToggle,
+        },
+        { onConflict: 'user_id' }
+      );
+
+      if (error) throw error;
+
+      // Success: Update originalSettings so the Save button disappears
+      setOriginalSettings({
+        cameraFailToggle,
+        accidentDetectionToggle,
+        manualOverrideToggle,
+        intersectionToggle,
+        reportsToggle
+      });
+      setMessage({ text: "Preferences saved!", type: 'success' });
+    } catch (err) {
+      setMessage({ text: err.message, type: 'error' });
+    } finally {
+      setIsDirty(false)
+      setLoading(false)
     }
   }
+  
+  useEffect(() => {
+    async function loadSettings() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setEmails(user.email)
+        const { data } = await supabase
+          .from('user_preferences') 
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-  const choosePrimaryEmailElmt = emails.map((email) => (
-  <div key={email} className='mb-1.5'>
-    <input
-      type="radio"
-      id={email}
-      name="primary"
-      value={email}
-      checked={primaryEmail === email}
-      onChange={() => setPrimaryEmail(email)}
-    />
-    <label htmlFor={email}>{email}</label>
-  </div>
-))
-
-  //if the user delete the primary emial automatically shift the primary tag to other available email
-  const emailListElmt = emails.map((email, i) => {
-    if(i+1 === emails.length) {
-      return (
-        <div key={email}>
-          <div className='flex justify-between items-center px-1 py-0.5 mt-1.5'>
-            <h5>{email}</h5>
-            {/* add a onclick event that will delete the email */}
-            <button
-             onClick={() =>handleDeleteEmail(email)}
-             className={`mr-4 border border-neutral-400 text-rose-700 hover:bg-rose-700 hover:text-neutral-300 rounded-md px-2 py-1 font-medium hover:shadow-md ${emails.length === 1? 'hidden': null}`}>Delete</button>
-          </div>
-        </div>
-        
-      )
-
-    }else{
-      return (
-        <div key={email}>
-          <div className='flex justify-between items-center px-1 py-0.5 mt-1.5'>
-            <h5>{email}</h5>
-            <button
-             onClick={() => handleDeleteEmail(email)} 
-             className={`mr-4 border border-neutral-400 text-rose-700 hover:bg-rose-700 hover:text-neutral-300 rounded-md px-2 py-1 font-medium hover:shadow-md ${emails.length === 1? 'hidden': null}`}>Delete</button>
-          </div>
-          <hr className='w-full text-neutral-400 my-4' />
-        </div>
-      )
+        if (data) {
+          const loaded = {
+            cameraFailToggle: data.camera_fail,
+            accidentDetectionToggle: data.accident_detection,
+            manualOverrideToggle: data.manual_override,
+            intersectionToggle: data.intersection_updates,
+            reportsToggle: data.reports
+          };
+          // Set both current and original states
+          setCameraFailToggle(loaded.cameraFailToggle);
+          setAccidentDetectionToggle(loaded.accidentDetectionToggle);
+          setManualOverrideToggle(loaded.manualOverrideToggle);
+          setIntersectionToggle(loaded.intersectionToggle);
+          setReportsToggle(loaded.reportsToggle);
+          setOriginalSettings(loaded);
+        }
+      }
     }
-  })
+    loadSettings();
+  }, []);
+
+  // 2. Check for changes whenever toggles update
+  useEffect(() => {
+    const current = { 
+      cameraFailToggle, 
+      accidentDetectionToggle, 
+      manualOverrideToggle, 
+      intersectionToggle, 
+      reportsToggle 
+    };
+    // Simple equality check to show/hide Save button
+    const changed = JSON.stringify(current) !== JSON.stringify(originalSettings);
+    setIsDirty(changed);
+  }, [cameraFailToggle, accidentDetectionToggle, manualOverrideToggle, intersectionToggle, reportsToggle, originalSettings]);
 
   return (
     <div className='py-6 px-12'>
@@ -112,54 +171,39 @@ function UserSettings() {
           </div>
           {changePasswordToggle?<>
             <div className='px-1 ml-10 w-50 flex-initial'>
-              <label htmlFor="" name="" id='' className='font-semibold'>Old password</label>
-              <input type="text" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
-              <label htmlFor="" className='font-semibold'>New password</label>
-              <input type="text" name="" id="" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
-              <label htmlFor="" className='font-semibold'>Confirm new password</label>
-              <input type="text" className='border border-neutral-400 rounded-md py-1 px-2 mb-4'/>
-            </div>
-            <div className='px-1 ml-10'>
-              <p className='text-neutral-600 mb-3 text-sm'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
-              <button className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200'>Update Password</button>
-              <Link to="/forgotpass" className='text-blue-700'>I forgot my password</Link>
+              <label className='font-semibold'>New password</label>
+              <input 
+                type="password"
+                value={newPassword}
+                onChange={(e)=> setNewPassword(e.target.value)}
+                className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
+              />
 
+              <label className='font-semibold'>Confirm new password</label>
+              <input 
+                type="password"
+                value={confirmPassword}
+                onChange={(e)=> setConfirmPassword(e.target.value)}
+                className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
+              />
             </div>
-          </>:null}
-        </div>
-      </div>
-      {/* Email */}
-      <div className='border-none pt-2 pb-5 pr-2'>
-        <h1 className='text-neutral-800 text-2xl font-medium mb-2'>Email</h1>
-        <hr className='w-full text-neutral-400 -mx-2' />
-        <div className='border border-neutral-400 rounded-md pt-2 pb-5 px-2 mt-4 -mx-2'>
-          {/* here it will need to fetch the default email of the organization */}
-          {emailListElmt}
-        </div>
-        {/* Add email */}
-        <div className='pt-2 pb-5 px-2 mt-4 -ml-2'>
-          <p className='font-semibold'>Add email address</p>
-          {/* make a form and see how to verify email */}
-          <div className='flex items-center mt-2'>
-            <input 
-              type="email" 
-              placeholder='Email address' 
-              className='border border-neutral-400 rounded-md py-1 px-2' 
-              value={emailAdd} 
-              onChange={e => setEmailAdd(e.target.value)}
-            />
-            <button onClick={addEmailToList} className='border border-neutral-400 rounded-md py-1 px-3 ml-2 hover:bg-violet-200'>Add</button>
-          </div>
-          <div className='border border-neutral-400 rounded-md pt-2 pb-5 px-2 mt-4 -mx-2'>
-            <p className='font-semibold'>Primary email address</p>
-            <p className='text-neutral-600 mb-3'>Select an email to be used for account-related notifications and can be used for password reset.</p>
-            {/* here it will need to fetch the default email of the organization */}
-            <div className='px-1 py-0.5 mt-1.5'>
-              {choosePrimaryEmailElmt}
-            </div>
-          </div>
-        </div>
+            <p className='text-neutral-600 mb-3 text-sm px-1 ml-10'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
 
+            {/* Message display */}
+            { message.text && (
+              <p className={`mb-3 ml-10 px-1 text-sm font-medium ${message.type === 'error' ? 'text-rose-600' : 'text-green-600'}`}>
+                {message.text}
+              </p>
+            )}
+            <button 
+              className={`ml-10 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={handleUpdatePassword}
+              disabled={loading}
+            >
+              {loading ? 'Updating...' : 'Update Password'}
+            </button>
+          </>:null} 
+        </div>
       </div>
 
       {/* Notification Email */}
@@ -169,12 +213,27 @@ function UserSettings() {
         <div className='border border-neutral-400 rounded-md pt-2 pb-5 px-2 mt-4 -mx-2'>
           <p className='font-semibold'>Default notification email</p>
           {/* here it will need to fetch the default email of the organization */}
-          <div className='border border-neutral-400 hover:bg-violet-300 hover:shadow-sm w-fit rounded-sm px-1 py-0.5 mt-1.5'>
-            <h5 className='hover:text-violet-900'>{primaryEmail}</h5>
+          <div className='border border-neutral-400 hover:bg-violet-300 hover:shadow-sm w-fit rounded-sm px-1 py-0.5 mt-3'>
+            <h5 className='hover:text-violet-900 p-1'>{emails}</h5>
           </div>
         </div>
+
+        {/* Subscriptions Container */}
         <div className='border border-neutral-400 rounded-md pt-2 pb-5 px-2 mt-4 -mx-2'>
-          <p className='font-semibold my-2 mb-3'>Subscriptions</p>
+          <div className='flex justify-between items-center pr-4'>
+            <p className='font-semibold my-2 mb-3'>Subscriptions</p>
+            
+            {/* Animated Save Button */}
+            {isDirty && (
+              <button 
+                onClick={handleSaveSubscriptions}
+                disabled={loading}
+                className="bg-violet-600 text-white px-4 py-1.5 rounded-md shadow-lg hover:bg-violet-700 transition-all transform scale-100 active:scale-95 flex items-center gap-2"
+              >
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            )}
+          </div>
           <hr className='w-full text-neutral-400 -mx-2' />
 
           {/* Camera Failure */}
@@ -183,12 +242,12 @@ function UserSettings() {
           <label className="inline-flex items-center cursor-pointer">
             <input 
               type="checkbox" 
-              value="" 
+              value=""
               className="sr-only peer" 
               checked={cameraFailToggle} 
               onChange={() => setCameraFailToggle(prev=>!prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
             <span className="ms-3 text-sm font-medium text-neutral-900">{cameraFailToggle?"ON":"OFF"}</span>
           </label>
           <hr className='w-full text-neutral-400 mt-3' />
@@ -204,7 +263,7 @@ function UserSettings() {
               checked={accidentDetectionToggle} 
               onChange={() => setAccidentDetectionToggle(prev=>!prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
             <span className="ms-3 text-sm font-medium text-neutral-900">{accidentDetectionToggle?"ON":"OFF"}</span>
           </label>
           <hr className='w-full text-neutral-400 mt-3' />
@@ -220,7 +279,7 @@ function UserSettings() {
               checked={manualOverrideToggle} 
               onChange={() => setManualOverrideToggle(prev=>!prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
             <span className="ms-3 text-sm font-medium text-neutral-900">{manualOverrideToggle?"ON":"OFF"}</span>
           </label>
           <hr className='w-full text-neutral-400 mt-3'/>
@@ -236,7 +295,7 @@ function UserSettings() {
               checked={intersectionToggle} 
               onChange={() => setIntersectionToggle(prev=>!prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
             <span className="ms-3 text-sm font-medium text-neutral-900">{intersectionToggle?"ON":"OFF"}</span>
           </label>
           <hr className='w-full text-neutral-400 mt-3' />
@@ -252,7 +311,7 @@ function UserSettings() {
               checked={reportsToggle} 
               onChange={() => setReportsToggle(prev=>!prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5  after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
             <span className="ms-3 text-sm font-medium text-neutral-900">{reportsToggle?"ON":"OFF"}</span>
           </label>
 
