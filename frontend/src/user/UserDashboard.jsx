@@ -1,56 +1,58 @@
 import { useState, useEffect } from "react"
 import supabase from '../auth/supabaseClient'
-import {useNavigate} from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { IoMdRefresh } from "react-icons/io";
 
 //add a refresh button
 function UserDashboard() {
   const[selectedPeriod, setSelectedPeriod] = useState('W')
-  const[refresh, setRefresh] = useState(false)
-  const[loading, setLoading] = useState(false)
   const [hourlyTraffic, setHourlyTraffic] = useState([])
   const [vehicleTypes, setVehicleTypes] = useState([])
   const [periodAnalysis, setPeriodAnalysis] = useState([])
-  const navigate = useNavigate()
-
-  function handleRefresh() {
-    setRefresh(prevRefresh=>!prevRefresh)
-
-  }
 
   useEffect(()=> {
     fetchUserData()
-    console.log('refreshed')
-  }, [selectedPeriod, refresh])
+
+    const channel = supabase
+      .channel('new-vehicles-added')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'traffic_logs'
+        },
+        payload => {
+          console.log(payload)
+          fetchUserData();
+        }
+      ).subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, [selectedPeriod])
 
   const fetchUserData = async ()=> {
-    //Check if the user is loged in 
-    const {data: {session}} = await supabase.auth.getSession()
-
-    if(!session) {
-      navigate('/login')
-      return
-    }
-
     let startDate = new Date()
     if(selectedPeriod === 'W') startDate.setDate(startDate.getDate() - 7)
     else if (selectedPeriod === 'M') startDate.setMonth(startDate.getMonth() - 1)
     else if (selectedPeriod === 'Y') startDate.setFullYear(startDate.getFullYear() - 1)
+    
+    try {
+      const { data, error } = await supabase
+      .from('traffic_logs')
+      .select()
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', {
+        ascending: true,
+      });
 
-    // Fetch the data directly from supabase
-    const {data, error} = await supabase
-    .from('traffic_logs')
-    .select('*')
-    .gte('created_at',startDate.toISOString())
-    .order('created_at', {ascending: true})
-
-    if(error) {
-      console.error("Error fetching data: ", error)
-    } else {
-      processDataForCharts(data)
+      if(error) {
+        throw error;
+      }
+      processDataForCharts(data);
+    } catch (error) {
+      console.error('Error fetching user Dashboard data: ', error);
     }
-    setLoading(false)
   }
 
   function processDataForCharts(data) {
@@ -91,10 +93,6 @@ function UserDashboard() {
     setPeriodAnalysis(periodStats);
   }
 
-  if(loading) {
-    return <p>Loading dashboard....</p>
-  }
-
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
@@ -102,12 +100,7 @@ function UserDashboard() {
       {/* hourly report of cars */}
       <div className='relative bg-neutral-800 mr-11 mt-1 w-auto h-100 border-none rounded-4xl'>
         <h4 className='pt-5 text-center text-neutral-200 text-lg font-semibold'>Today Hourly Traffic</h4>
-        <button 
-          onClick={handleRefresh} 
-          className="absolute top-0 right-0 bg-violet-200 hover:bg-violet-300 hover:shadow-md transition-colors duration-300 w-10 h-10 m-3 rounded-full">
-          <IoMdRefresh className="w-10 h-7"/>
-        </button>
-        <ResponsiveContainer width="90%" height="80%" className='ml-5 mt-2 pb-2'>
+        <ResponsiveContainer width="100%" aspect={3.2} minHeight={300} className='mt-2 pr-10'>
           <LineChart data={hourlyTraffic}>
             <XAxis dataKey="time" stroke="#ccc" />
             <YAxis stroke="#ccc" />

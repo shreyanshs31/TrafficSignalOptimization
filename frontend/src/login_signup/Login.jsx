@@ -1,42 +1,35 @@
 import { FaLock } from "react-icons/fa";
 import loginImg from "../assets/loginimg1.jpg"
 import { IoMdMail } from "react-icons/io";
-import { Link } from "react-router-dom";
-import supabase  from "../auth/supabaseClient";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useActionState } from "react";
+import { useAuth } from "../auth/AuthProvider";
 
 export default function Login() {
-    const[email, setEmail] = useState('')
-    const[password, setPassword] = useState('')
-    const[loading, setLoading] = useState(false)
-    const navigate = useNavigate()
+    const {signInUser} = useAuth();
+    const navigate = useNavigate();
+    const [error, submitAction, isPending] = useActionState(
+        async (previousState, formData) => {
+            const email = formData.get('email');
+            const password = formData.get('password');
 
-    const handleLogin = async (e)=> {
-        e.preventDefault()
-        setLoading(true)
-        //Authentication with Supabase
-        try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            })
-    
-            if(error) {
-                alert("Login faild: "+ error.message)
-            } else {
-                console.log("User logged in")
-                //use :userId for per user different dashboard--------------
-                navigate('/user/dashboard')
+            // call our sign-in function
+            const{
+                success,
+                data,
+                error: signInError,
+            } = await signInUser(email, password)
+
+            if(signInError) {
+                return new Error(signInError);
             }
-
-        } catch (err) {
-            console.error(err)
-            alert("Login failed")
-        } finally {
-            setLoading(false)
-        }
-    }
+            if(success && data?.session) {
+                navigate('/user/dashboard');
+                return null;
+            }
+            return null;
+        }, null
+    )
 
     return(
         <div className="grid grid-cols-2 ">
@@ -45,7 +38,7 @@ export default function Login() {
                 <p className="text-5xl font-bold pb-4">Namaste, <br /> Welcome back</p>
                 <p className="text-sm font-normal pb-2 text-neutral-400">Hey, welcome back lets clear the traffic</p>
                 <div className="w-105">
-                    <form onSubmit={handleLogin}>
+                    <form action={submitAction}>
                         <div className="relative w-full h-12 my-10">
                             <label 
                                 htmlFor="loginemail" 
@@ -57,10 +50,11 @@ export default function Login() {
                                 autoFocus 
                                 className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" 
                                 type="email"
-                                value={email}
+                                name="email"
                                 placeholder="exmaple@email.com" 
-                                onChange={(e)=> setEmail(e.target.value)}
-                            required/>
+                                required
+                                disabled={isPending}
+                            />
                             <IoMdMail className="absolute right-5 top-9/10 text-md"/>
                         </div>
                         <div className="relative w-full h-12 my-10">
@@ -74,10 +68,10 @@ export default function Login() {
                                 id="loginpassword" 
                                 className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" 
                                 type="password"
-                                value={password}
-                                onChange={(e)=>setPassword(e.target.value)}
+                                name="password"
                                 placeholder="*****" 
-                            required/>
+                                required
+                            />
                             <FaLock className="absolute right-5 top-9/10 text-md"/>
                         </div>
                         <div className="w-105 flex justify-between text-sm -ml-3.5 mr-3.5">
@@ -94,9 +88,10 @@ export default function Login() {
                         <button 
                             type="submit"
                             className="mt-3 mb-5 w-full h-11 bg-violet-200 border-none outline-none rounded-4xl shadow-sm cursor-pointer text-sm text-neutral-800 font-bold hover:bg-violet-300" 
-                            disabled={loading}>
-                            {loading? "Logging in...":"Login"}
+                            disabled={isPending}>
+                            {isPending? "Logging in...":"Login"}
                         </button>
+                        {/* error container comes here */}
                     </form>
                     <div className="w-105 text-sm text-center mt-5">
                         <p className="font-semibold">Don't have an account?
