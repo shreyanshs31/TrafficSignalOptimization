@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { IoMail } from "react-icons/io5";
 import { MdOutlinePassword } from "react-icons/md";
 import supabase from '../auth/supabaseClient';
-import { useAuth } from '../../auth/AuthProvider'
-
+import { useAuth } from '../auth/AuthProvider'
 
 function UserSettings() {
   const { session } = useAuth();
@@ -25,7 +24,7 @@ function UserSettings() {
     setChangePasswordToggle(prev=>!prev)
   }
 
-  {/* make this function in Auth Provider */}
+  {/* ------------------------------------------make this function in Auth Provider---------------------------- */}
   async function handleUpdatePassword() {
     setMessage({ text: '', type: '' })
 
@@ -61,12 +60,10 @@ function UserSettings() {
   async function handleSaveSubscriptions() {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
-          user_id: user.id,
+          user_id: session.user.id,
           camera_fail: cameraFailToggle,
           accident_detection: accidentDetectionToggle,
           manual_override: manualOverrideToggle,
@@ -97,32 +94,36 @@ function UserSettings() {
   
   useEffect(() => {
     async function loadSettings() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setEmails(user.email)
-        const { data } = await supabase
-          .from('user_preferences') 
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+      // extract user email from the database
+      setEmails(session?.user?.email)
 
-        if (data) {
-          const loaded = {
-            cameraFailToggle: data.camera_fail,
-            accidentDetectionToggle: data.accident_detection,
-            manualOverrideToggle: data.manual_override,
-            intersectionToggle: data.intersection_updates,
-            reportsToggle: data.reports
-          };
-          // Set both current and original states
-          setCameraFailToggle(loaded.cameraFailToggle);
-          setAccidentDetectionToggle(loaded.accidentDetectionToggle);
-          setManualOverrideToggle(loaded.manualOverrideToggle);
-          setIntersectionToggle(loaded.intersectionToggle);
-          setReportsToggle(loaded.reportsToggle);
-          setOriginalSettings(loaded);
+      try {
+        const {data, error} = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        if(error) {
+          throw error;
         }
-      }
+        const loaded = {
+          cameraFailToggle: data.camera_fail,
+          accidentDetectionToggle: data.accident_detection,
+          manualOverrideToggle: data.manual_override,
+          intersectionToggle: data.intersection_updates,
+          reportsToggle: data.reports
+        }
+        // Set both current and original states
+        setCameraFailToggle(loaded.cameraFailToggle);
+        setAccidentDetectionToggle(loaded.accidentDetectionToggle);
+        setManualOverrideToggle(loaded.manualOverrideToggle);
+        setIntersectionToggle(loaded.intersectionToggle);
+        setReportsToggle(loaded.reportsToggle);
+        setOriginalSettings(loaded);
+        
+      } catch (error) {
+        console.error("Error fetching data from user_preferences table: ",error.message)
+      };
     }
     loadSettings();
   }, []);

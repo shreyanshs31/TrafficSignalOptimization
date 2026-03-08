@@ -78,6 +78,9 @@ export const AuthProvider = ({children})=> {
     }
 
     {/* UpdateUser password function */}
+
+    
+    {/* Delete account function  */}
     return (
         <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser}}>
             {children}

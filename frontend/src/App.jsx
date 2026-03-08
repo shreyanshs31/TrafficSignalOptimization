@@ -9,11 +9,13 @@ import UserLiveFeed from './user/UserLiveFeed.jsx';
 import UserSettings from './user/UserSettings.jsx';
 import UserPageLayout from "./user/Layout/UserPageLayout.jsx"
 import ProtectedRoute from "./auth/ProtectedRoute.jsx"
+import RouteRedirect from "./RouteRedirect.jsx"
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={< RouteRedirect />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgotpass" element={<ForgotPass />} />

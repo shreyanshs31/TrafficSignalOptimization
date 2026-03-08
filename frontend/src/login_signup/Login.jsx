@@ -54,6 +54,7 @@ export default function Login() {
                                 placeholder="exmaple@email.com" 
                                 required
                                 disabled={isPending}
+                                autoComplete="on"
                             />
                             <IoMdMail className="absolute right-5 top-9/10 text-md"/>
                         </div>
@@ -71,6 +72,7 @@ export default function Login() {
                                 name="password"
                                 placeholder="*****" 
                                 required
+                                autoComplete="off"
                             />
                             <FaLock className="absolute right-5 top-9/10 text-md"/>
                         </div>

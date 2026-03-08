@@ -50,6 +50,7 @@ export default function Signup() {
                                 placeholder="XYZ organization" 
                                 required
                                 disabled={isPending}
+                                autoComplete="on"
                             />
                             <FaBuildingShield className="absolute right-5 top-9/10 text-md"/>
                         </div>
@@ -63,6 +64,7 @@ export default function Signup() {
                                 name="email"
                                 required
                                 disabled={isPending}
+                                autoComplete="on"
                             />
                             <IoMdMail className="absolute right-5 top-9/10 text-md"/>
                         </div>
@@ -76,7 +78,9 @@ export default function Signup() {
                                 placeholder="*****"
                                 name="password"
                                 disabled={isPending}
-                            required/>
+                                autoComplete="off"
+                                required
+                            />
                             <FaLock className="absolute right-5 top-9/10 text-md"/>
                         </div>
                         <div className="mt-10 mb-2 w-105 text-sm -ml-3.5 mr-3.5">
