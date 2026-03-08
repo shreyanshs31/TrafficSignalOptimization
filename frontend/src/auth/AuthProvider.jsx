@@ -76,6 +76,8 @@ export const AuthProvider = ({children})=> {
             return {success: false, error: 'An unexpected error occured. Please try again.'}
         }
     }
+
+    {/* UpdateUser password function */}
     return (
         <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser}}>
             {children}

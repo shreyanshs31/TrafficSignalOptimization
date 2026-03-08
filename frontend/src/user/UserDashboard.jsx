@@ -66,7 +66,6 @@ function UserDashboard() {
       time: `${hour}:00`,
       count: count
     }));
-    console.log(hourlyStats)
     setHourlyTraffic(hourlyStats)
 
     const typeMap = {}

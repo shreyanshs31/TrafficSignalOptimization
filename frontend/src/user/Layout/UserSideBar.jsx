@@ -1,22 +1,28 @@
-import { NavLink, Link } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import { MdSpaceDashboard } from "react-icons/md";
-import { IoSettingsSharp } from "react-icons/io5";
-import { IoVideocam } from "react-icons/io5";
-import { IoLogOut } from "react-icons/io5";
-import supabase from "../../auth/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { IoSettingsSharp, IoVideocam, IoLogOut } from "react-icons/io5";
+import { useAuth } from "../../auth/AuthProvider";
 
 export default function UserSideBar() {
+    const navigate = useNavigate();
+    const { signOut } = useAuth();
+
     const style = (({ isActive }) =>
                         `flex items-center gap-2 left-5 text-lg mt-5 px-3 py-2 rounded-lg transition-colors duration-200 ${
                             isActive ? "bg-violet-300 text-violet-900 font-semibold" : ""
-                        }`)
-    const navigate = useNavigate()
-    const handleLogout = async ()=> {
-        //clear the session from supabase and local storage
-        await supabase.auth.signOut()
-        //redirect back to login
-        navigate('/login')
+                        }`
+    )
+               
+    const handleLogout = async (e)=> {
+        e.preventDefault();
+
+        const { success, error } = await signOut();
+        if ( success ) {
+            console.log("successful logout")
+            navigate('/login');
+        } else {
+            console.error('Supabase logout error.', error.message);
+        }
     }
     
     return (
@@ -52,7 +58,6 @@ export default function UserSideBar() {
             <button onClick={handleLogout}>
                 <div className="flex items-center gap-2 left-5 text-lg px-3 py-2 rounded-lg transition-colors duration-300 hover:bg-rose-900 hover:text-neutral-200 font-semibold hover:shadow-md">
                     <IoLogOut />
-                        {/* use subscription.unsubscribe() from supabase when logging out */}
                     <span>
                         Logout
                     </span>

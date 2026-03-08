@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { IoMail } from "react-icons/io5";
 import { MdOutlinePassword } from "react-icons/md";
 import supabase from '../auth/supabaseClient';
+import { useAuth } from '../../auth/AuthProvider'
 
 
 function UserSettings() {
+  const { session } = useAuth();
   const [originalSettings, setOriginalSettings] = useState({})
   const [isDirty, setIsDirty] = useState(false)
   const [cameraFailToggle, setCameraFailToggle] = useState(true)
@@ -23,6 +25,7 @@ function UserSettings() {
     setChangePasswordToggle(prev=>!prev)
   }
 
+  {/* make this function in Auth Provider */}
   async function handleUpdatePassword() {
     setMessage({ text: '', type: '' })
 
