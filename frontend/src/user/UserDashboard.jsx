@@ -49,50 +49,146 @@ function UserDashboard() {
       if(error) {
         throw error;
       }
+      console.log(data);
       processDataForCharts(data);
     } catch (error) {
       console.error('Error fetching user Dashboard data: ', error);
     }
   }
-
+  
   function processDataForCharts(data) {
-    const hourlyMap = new Array(24).fill(0)
-    data.forEach(log => {
-      const hour = new Date(log.created_at).getHours()
-      hourlyMap[hour]++
-    });
 
-    const hourlyStats = hourlyMap.map((count, hour) => ({
-      time: `${hour}:00`,
-      count: count
-    }));
+    // the data which is showing in chart is not of the day but instead of last 24 entries in the database
+    const hourlyStats = new Array(24).fill(0)
+    for (let index = 0; index < hourlyStats.length; index++) {
+      hourlyStats[index] = {time : `${index}:00`, count: 0};
+    }
+
+    const startOfToday = new Date().setHours(0,0,0,0);
+    data.forEach(log => {
+      const recordTime = new Date(log.created_at).getTime();
+      if(recordTime >= startOfToday) {
+        const hour = new Date(log.created_at).getHours()
+        const sum = log.Truck + log.Bike + log.Car + log.Bus + log.EmergencyVehicle
+        hourlyStats[hour].count = sum
+      }
+    })
     setHourlyTraffic(hourlyStats)
 
-    const typeMap = {}
-    data.forEach(log=> {
-      typeMap[log.vehicle_type] = (typeMap[log.vehicle_type]|| 0) + 1
-    })
+    
+    // This object maps all vehicles and counts them by vehicle type and it changes as per week, month, year is selcted 
+    const typeMap = {
+      truck: 0,
+      bike : 0,
+      car : 0,
+      bus : 0,
+      emergencyVehicle : 0 
+    }
 
+    data.forEach(log=> {
+      typeMap.truck += log.Truck,
+      typeMap.bike += log.Bike,
+      typeMap.car += log.Car,
+      typeMap.bus += log.Bus,
+      typeMap.emergencyVehicle += log.EmergencyVehicle
+    })
+    
     const typeStats = Object.keys(typeMap).map(type=>({
       name : type,
       value : typeMap[type]
     }))
     setVehicleTypes(typeStats)
 
-    const periodMap = {};
-    data.forEach(log => {
-      const dateKey = new Date(log.created_at).toLocaleDateString(); // "12/14/2025"
-      periodMap[dateKey] = (periodMap[dateKey] || 0) + 1;
-    });
+    //This shows the data of last 7 days for weeks; last 12 months for year; last 30 days as 10(3 days gap sum) 
 
-    const periodStats = Object.keys(periodMap).map(date => ({
-      date: date,
-      traffic: periodMap[date]
-    }));
-    setPeriodAnalysis(periodStats);
+    if(selectedPeriod === 'W') {
+      const weekReport =  data.reduce((acc, record) => {
+        // 1. Get the date key (YYYY-MM-DD)
+        const dateKey = new Date(record.created_at).toISOString().split('T')[0];
+
+        // 2. If the day doesn't exist in our accumulator, initialize it with zeros
+        if (!acc[dateKey]) {
+          acc[dateKey] = 0;
+        }
+
+        // 3. Add the current record's values to that day's running total
+        acc[dateKey] += record.Truck + record.Bike + record.Car + record.Bus + record.EmergencyVehicle || 0;
+        return acc;
+      }, {});
+      const periodStats = Object.keys(weekReport).map(date => ({
+        label: date,
+        totalVehicles: weekReport[date]
+      }));
+      setPeriodAnalysis(periodStats);
+    } 
+    if (selectedPeriod === 'M') {
+      let startDate = new Date()
+      startDate.setMonth(startDate.getMonth() - 1)
+      startDate.setHours(0, 0, 0, 0);
+      
+      const bars = Array.from({ length: 10 }, (_, i) => ({
+        label: `Day ${((i + 1)*3)-2}-${(i+1)*3}`,
+        totalVehicles: 0
+      }));
+      
+      data.forEach(record => {
+        const recordDate = new Date(record.created_at);
+        
+        // Calculate the difference in time (milliseconds)
+        const diffInMs = recordDate.getTime() - startDate.getTime();
+        
+        // Convert milliseconds to days (1 day = 86,400,000 ms)
+        const dayOffset = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+        
+        // Determine which 3-day bucket it belongs to (0-2 = Index 0, 3-5 = Index 1, etc.)
+        const bucketIndex = Math.floor(dayOffset / 3);
+        console.log(bucketIndex)
+
+        // Only add to the bar if it fits within our 10-bar limit (0 to 9)
+        if (bucketIndex >= 0 && bucketIndex < 10) {
+          const sum = (record.Truck || 0) + 
+                      (record.Bike || 0) + 
+                      (record.Car || 0) + 
+                      (record.Bus || 0) + 
+                      (record.EmergencyVehicle || 0);
+          
+          bars[bucketIndex].totalVehicles += sum;
+        }
+      });
+      setPeriodAnalysis(bars);
+    } 
+    if(selectedPeriod === 'Y') {
+      const startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
+
+      // Initialize 12 buckets for the 12 months
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const buckets = monthNames.map(name => ({
+        label: name,
+        totalVehicles: 0,
+      }));
+      data.forEach(record => {
+        const recordDate = new Date(record.created_at);
+        
+        // .getMonth() returns 0 for Jan, 1 for Feb, etc.
+        const monthIndex = recordDate.getMonth();
+
+        // Sum the vehicles for this specific record
+        const recordTotal = 
+          (record.Truck || 0) + 
+          (record.Bike || 0) + 
+          (record.Car || 0) + 
+          (record.Bus || 0) + 
+          (record.EmergencyVehicle || 0);
+
+        // Add to the corresponding month bucket
+        buckets[monthIndex].totalVehicles += recordTotal;
+      });
+      setPeriodAnalysis(buckets);
+    } 
   }
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#EA2F52'];
 
   return (
     <div>
@@ -125,9 +221,9 @@ function UserDashboard() {
 
           <ResponsiveContainer width="100%" height="80%" className='px-7 py-2'>
             <BarChart data={periodAnalysis}>
-              <XAxis dataKey="date" hide />
+              <XAxis dataKey='label' hide />
               <Tooltip cursor={{fill: 'transparent'}} />
-              <Bar dataKey="traffic" fill="#1e1e1e" radius={[10, 10, 0, 0]} />
+              <Bar dataKey="totalVehicles" fill="#1e1e1e" radius={[10, 10, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
 

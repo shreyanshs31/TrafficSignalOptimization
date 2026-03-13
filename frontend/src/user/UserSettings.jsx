@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { IoMail } from "react-icons/io5";
 import { MdOutlinePassword } from "react-icons/md";
 import supabase from '../auth/supabaseClient';
 import { useAuth } from '../auth/AuthProvider'
 
 function UserSettings() {
-  const { session } = useAuth();
+  const { session, updatePass, updateEmail} = useAuth();
   const [originalSettings, setOriginalSettings] = useState({})
   const [isDirty, setIsDirty] = useState(false)
   const [cameraFailToggle, setCameraFailToggle] = useState(true)
@@ -18,43 +18,32 @@ function UserSettings() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState({ text: '', type: '' })
+
+
+  const [error, submitAction, isPending] = useActionState(
+    async(previousState, formData) => {
+      if( newPassword === confirmPassword) {
+        const password = formData.get('password')
+        const {
+          success,
+          data,
+          error: updatingPassError,
+        } = await updatePass(password);
+        if(updatingPassError) {
+          return new Error(updatingPassError);
+        }
+        if(success && data?.session) {
+          return null;
+        }
+        return null;
+      } else {
+        return new Error('Password do not match.')
+      }
+    }, null
+  );
 
   function handleChangePasswordToggle() {
     setChangePasswordToggle(prev=>!prev)
-  }
-
-  {/* ------------------------------------------make this function in Auth Provider---------------------------- */}
-  async function handleUpdatePassword() {
-    setMessage({ text: '', type: '' })
-
-    if (newPassword !== confirmPassword) {
-      setMessage({ text: "Passwords do not match.", type: 'error' })
-      return
-    }
-
-    if (newPassword.length < 6) {
-      setMessage({ text: "Password should be at least 6 characters.", type: 'error' })
-      return
-    }
-
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) throw error;
-
-      setMessage({ text: "Password updated successfully!", type: 'success' })
-      setNewPassword('')
-      setConfirmPassword('')
-      setChangePasswordToggle(false)
-    } catch (error) {
-      setMessage({ text: error.message, type: 'error' })
-    } finally {
-      setLoading(false)
-    }
   }
 
   async function handleSaveSubscriptions() {
@@ -83,9 +72,9 @@ function UserSettings() {
         intersectionToggle,
         reportsToggle
       });
-      setMessage({ text: "Preferences saved!", type: 'success' });
+      console.log('Prefrences saved in supabase')
     } catch (err) {
-      setMessage({ text: err.message, type: 'error' });
+      console.error('Supabase prefrences not saved error: ', error.message);
     } finally {
       setIsDirty(false)
       setLoading(false)
@@ -174,38 +163,53 @@ function UserSettings() {
             <button onClick={handleChangePasswordToggle} className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>{changePasswordToggle?"Hide":"Change Password"}</button>
           </div>
           {changePasswordToggle?<>
-            <div className='px-1 ml-10 w-50 flex-initial'>
-              <label className='font-semibold'>New password</label>
-              <input 
-                type="password"
-                value={newPassword}
-                onChange={(e)=> setNewPassword(e.target.value)}
-                className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
-              />
+            <form action={submitAction}>
+              <div className='px-1 ml-10 w-50 flex-initial'>
+                <label className='font-semibold' htmlFor='password'>New password</label>
+                <input
+                  autoFocus
+                  minLength='8'
+                  id='password'
+                  type="password"
+                  name='password'
+                  value={newPassword}
+                  required
+                  autoComplete='off'
+                  onChange={(e)=> setNewPassword(e.target.value)}
+                  disabled={isPending}
+                  className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
+                />
 
-              <label className='font-semibold'>Confirm new password</label>
-              <input 
-                type="password"
-                value={confirmPassword}
-                onChange={(e)=> setConfirmPassword(e.target.value)}
-                className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
-              />
-            </div>
-            <p className='text-neutral-600 mb-3 text-sm px-1 ml-10'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
+                <label htmlFor='cfpassword' className='font-semibold'>Confirm new password</label>
+                <input 
+                  id='cfpassword'
+                  required
+                  minLength='8'
+                  autoComplete='off'
+                  autoFocus
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e)=> setConfirmPassword(e.target.value)}
+                  disabled= {isPending}
+                  className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
+                />
+              </div>
+              <p className='text-neutral-600 mb-3 text-sm px-1 ml-10'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
 
-            {/* Message display */}
-            { message.text && (
-              <p className={`mb-3 ml-10 px-1 text-sm font-medium ${message.type === 'error' ? 'text-rose-600' : 'text-green-600'}`}>
-                {message.text}
-              </p>
-            )}
-            <button 
-              className={`ml-10 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleUpdatePassword}
-              disabled={loading}
-            >
-              {loading ? 'Updating...' : 'Update Password'}
-            </button>
+              {/* Message display */}
+              { error && (
+                <p className='mb-3 ml-10 px-1 text-sm font-medium text-rose-600'>
+                  {error.message}
+                </p>
+              )}
+              <button 
+                type='submit'
+                className={`ml-10 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isPending}
+              >
+                {isPending ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
           </>:null} 
         </div>
       </div>
@@ -322,13 +326,13 @@ function UserSettings() {
         </div>
       </div>
 
-      {/* Delete section */}
+      {/* Delete section
       <div className='border border-rose-800 rounded-md pt-2 pb-5 pr-2 -ml-2'>
         <h1 className='text-rose-700 text-2xl font-bold mb-1.5 ml-2'>Danger Zone</h1>
         <hr className='w-full text-neutral-400 ml-2' />
         <p className='mt-2 text-neutral-800 font-light ml-2'>Once you delete your account, <span className='font-medium'>there is no going back.</span> Please be certain.</p>
-        <button className='ml-2 mt-4 border border-neutral-400 text-rose-700 hover:bg-rose-700 hover:text-neutral-300 rounded-md px-2 py-1 font-medium hover:shadow-md'>Delete your account</button>
-      </div>
+        <button onClick={handleDeleteUser} className='ml-2 mt-4 border border-neutral-400 text-rose-700 hover:bg-rose-700 hover:text-neutral-300 rounded-md px-2 py-1 font-medium hover:shadow-md'>Delete your account</button>
+      </div> */}
     </div>
   )
 }

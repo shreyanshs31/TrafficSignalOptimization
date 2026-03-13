@@ -78,11 +78,62 @@ export const AuthProvider = ({children})=> {
     }
 
     {/* UpdateUser password function */}
+    const updatePass = async (password) => {
+        try {
+            const { data, error } = await supabase.auth.updateUser({
+                password: password
+            });
+            if(error) {
+                console.error('Supabase update password error: ', error.message);
+                return {success: false, error: error.message};
+            }
+            console.log('Password updated successfully in supabase')
+            return {success: true, data};
+            
+        } catch (error) {
+            console.error('Unexpected error occured during updating password: ', error.message);
+            return {success: false, error: 'An unexpected error occured. Please try again.'}
+        }
+    }
 
-    
-    {/* Delete account function  */}
+    {/* Update email function */}
+    const updateEmail = async (email) => {
+        try {
+            const {data, error} = await supabase.auth.updateUser({
+                email: email
+            });
+            if(error) {
+                console.error('Supabase update email error: ', error.message);
+                return {success: false, error: error.message};
+            }
+            console.log('Email updated successfully in supabase');
+            return {success: true, data};
+        } catch (error) {
+            console.error('Unexpected error occured during updating email: ', error.message);
+            return {success: false, error: 'An unexpected error occured. Please try again'};
+        }
+    }
+
+    // {/* Delete account function  */}
+    // const deleteUser = async(id) => {
+    //     try {
+    //         const {data, error} = await supabase.auth.admin.deleteUser(
+    //             id
+    //         );
+    //         if (error) {
+    //             console.error('Supabase delete user error: ', error.message);
+    //             return {success: false, error: error.message};
+    //         }
+    //         console.log('Supabase delete user successful');
+    //         return {success: true, data};
+    //     } catch ( error ) {
+    //         console.error('Unexpected error occured during deleting user: ', error.message);
+    //         return {success: false, error: 'An unexpected error occured. Please try again'};
+    //     }
+    // }
+
     return (
-        <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser}}>
+        <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser, updatePass, updateEmail}}>
             {children}
         </AuthContext.Provider>
     )
