@@ -17,10 +17,39 @@ function UserSettings() {
   const [changePasswordToggle, setChangePasswordToggle] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [changeEmailToggle, setChangeEmailToggle] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // email change functions
+  function handleChangeEmailToggle() {
+    setChangeEmailToggle(prev=>!prev)
+  }
 
-  const [error, submitAction, isPending] = useActionState(
+  const [errorEmail, submitActionEmail, isLoading] = useActionState(
+    async (previousState, formData) => {
+      const newEmail = formData.get('newEmail')
+      const {
+        success,
+        data,
+        error : updateEmailError,
+      } = await updateEmail(newEmail)
+      if(updateEmailError) {
+        return new Error(updateEmailError)
+      }
+      if(success && data?.session) {
+        return null;
+      }
+      return null;
+    }, null
+  );
+
+  // password change functions
+  function handleChangePasswordToggle() {
+    setChangePasswordToggle(prev=>!prev)
+  }
+
+  const [errorPassword, submitActionPassword, isPending] = useActionState(
     async(previousState, formData) => {
       if( newPassword === confirmPassword) {
         const password = formData.get('password')
@@ -41,10 +70,6 @@ function UserSettings() {
       }
     }, null
   );
-
-  function handleChangePasswordToggle() {
-    setChangePasswordToggle(prev=>!prev)
-  }
 
   async function handleSaveSubscriptions() {
     setLoading(true);
@@ -80,7 +105,7 @@ function UserSettings() {
       setLoading(false)
     }
   }
-  
+
   useEffect(() => {
     async function loadSettings() {
       // extract user email from the database
@@ -147,11 +172,46 @@ function UserSettings() {
                 <p className='text-neutral-600 mb-3 text-sm'>Verified email configured</p>
               </div>
             </div>
-            <button className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>Manage</button>
+            <button onClick={handleChangeEmailToggle} className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>{changeEmailToggle? 'Hide': 'Manage'}</button>
           </div>
+          {changeEmailToggle? 
+          <>
+            <form action={submitActionEmail}>
+              <div className='px-1 ml-10 w-50 flex-initial'>
+                <label htmlFor="newEmail" className='font-semibold'>New Email</label>
+                <input 
+                  type="email"
+                  autoFocus
+                  minLength='8'
+                  id='newEmail'
+                  name='newEmail'
+                  value={newEmail}
+                  required
+                  autoComplete='off'
+                  onChange={(e)=> setNewEmail(e.target.value)}
+                  disabled={isLoading}
+                  className='border border-neutral-400 rounded-md py-1 px-2 mb-4'
+                  />
+              </div>
+              <p className='text-neutral-600 mb-3 text-sm px-1 ml-10'>A confirmation mail will be sent to your new and old email before updating email in database.</p>
+              {/* Email Error Message display */}
+              { errorEmail && (
+                <p className='mb-3 ml-10 px-1 text-sm font-medium text-rose-600'>
+                  {errorEmail.message}
+                </p>
+              )}
+              <button
+                type='submit'
+                className={`ml-11 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isLoading} 
+              >
+                {isLoading ? 'Updating...' : 'Update Email'}
+              </button>
+            </form>
+          </>: null}
           <hr className='w-full text-neutral-400 mt-1 mb-3' />
-          {/* Password manage container */}
           
+          {/* Password manage container */}
           <div className='flex justify-between mt-1 ml-1'>
             <div className='flex '>
               <MdOutlinePassword className='w-7 h-7 mt-1'/>
@@ -163,7 +223,7 @@ function UserSettings() {
             <button onClick={handleChangePasswordToggle} className='border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 text-sm'>{changePasswordToggle?"Hide":"Change Password"}</button>
           </div>
           {changePasswordToggle?<>
-            <form action={submitAction}>
+            <form action={submitActionPassword}>
               <div className='px-1 ml-10 w-50 flex-initial'>
                 <label className='font-semibold' htmlFor='password'>New password</label>
                 <input
@@ -196,15 +256,15 @@ function UserSettings() {
               </div>
               <p className='text-neutral-600 mb-3 text-sm px-1 ml-10'>Make sure it's at least 15 characters OR at least 8 characters including a number and a lowercase letter.</p>
 
-              {/* Message display */}
-              { error && (
+              {/* Password Error Message display */}
+              { errorPassword && (
                 <p className='mb-3 ml-10 px-1 text-sm font-medium text-rose-600'>
-                  {error.message}
+                  {errorPassword.message}
                 </p>
               )}
               <button 
                 type='submit'
-                className={`ml-10 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`ml-11 border border-neutral-400 mt-1 mb-4 mr-4 rounded-md px-2 py-1 hover:bg-violet-200 transition-colors ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={isPending}
               >
                 {isPending ? 'Updating...' : 'Update Password'}
