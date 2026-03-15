@@ -77,7 +77,7 @@ export const AuthProvider = ({children})=> {
         }
     }
 
-    {/* UpdateUser password function */}
+    {/* Update user password when user is sign-in  */}
     const updatePass = async (password) => {
         try {
             const { data, error } = await supabase.auth.updateUser({
@@ -114,6 +114,28 @@ export const AuthProvider = ({children})=> {
         }
     }
 
+    {/* Update user password when user is sign-out  */}
+    const updatePassWithOtp = async (email) => {
+        try {
+            const {data, error} = await supabase.auth.signInWithOtp({
+                email : email,
+                options : {
+                    emailRedirectTo : 'localhost:5173/'
+                }
+            })
+            if(error) {
+                console.error('Supbase magic link send error. User might be invalid. Did you had an account', error.message);
+                return {success: false, error: error.message}
+            }
+            console.log('Supabase otp send successfully check your email');
+            return {success: true, data};
+        } catch (error){
+            console.error('Unexpected error occured during sending data to database: ', error.message);
+            return {success: false, error: 'An unexpected error occured. Please try again'}
+        }
+    }
+
+
     // {/* Delete account function  */}
     // const deleteUser = async(id) => {
     //     try {
@@ -133,7 +155,7 @@ export const AuthProvider = ({children})=> {
     // }
 
     return (
-        <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser, updatePass, updateEmail}}>
+        <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser, updatePass, updateEmail, updatePassWithOtp}}>
             {children}
         </AuthContext.Provider>
     )
