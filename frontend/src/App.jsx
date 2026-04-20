@@ -10,6 +10,7 @@ import UserSettings from './user/UserSettings.jsx';
 import UserPageLayout from "./user/Layout/UserPageLayout.jsx"
 import ProtectedRoute from "./auth/ProtectedRoute.jsx"
 import RouteRedirect from "./RouteRedirect.jsx"
+import PagePerIntersection from "./user/live feed components/PagePerIntersection.jsx"
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/user/dashboard" element={<UserDashboard/>}/>
           <Route path="/user/livefeed" element={<UserLiveFeed/>}/>
           <Route path="/user/settings" element={<UserSettings/>} />
+          <Route path="/user/intersectionview/${item}" element={<PagePerIntersection/>} />
         </Route>
       </Route>
     </Routes>
