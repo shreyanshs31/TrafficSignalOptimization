@@ -1,51 +1,127 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoIosAddCircle , IoMdCloseCircle} from "react-icons/io";
 import { FaPenSquare, FaMinusCircle } from "react-icons/fa";
-
-// import {v4 as uuidv4} from 'uuid'
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import VideoContainer from './VideoContainer.jsx';
-// import CrossingContainer from './CrossingContainer.jsx';
+import supabase from '../../auth/supabaseClient.js';
+import { useAuth } from '../../auth/AuthProvider.jsx';
+
+function PagePerIntersection({grid, setGrid}) {
+  const { id } = useParams(); // use to read dynamic paramaters from the url
+  const navigate = useNavigate();
+  const {session} = useAuth();
+  const userId = session?.user?.id;
 
 
-
-function PagePerIntersection() {
-  {/* this handles the state for the crossing input box name  */}
-  const [containerName, setContainerName] = useState("My Container");
-  {/* this handles the state when user clicks the input button in the container to change the name of the crossing*/}
-  const [containerNameEdit, setContainerNameEdit] = useState(false);
   {/* this handles the state when user clicks the edit button in the container */}
   const [isEditing, setIsEditing] = useState(false)
-  {/* this handles the state of list how of crossing Container */}
-//   const [crossingContList, setCrossingContList] = useState([])
 
+  {/* track 8 urls in an array */}
+  const [videoUrls, setVideoUrls] = useState(Array(8).fill(''));
 
-  {/* when the delete button is clicked inside the crossingContainer component it delete the specific id from the crossingContList or it just makes new list except that id if you want to say in react terms */}
-//   function handleCrossingContainerDelete(id) {
-//     setCrossingContList(
-//         crossingContList.filter(i => i !== id)
-//     )
-//   }
-  {/* this function just stores the uuid or unique ids in the list */}
-//   function ToggleCrossingContainer() {
-//     setCrossingContList([
-//         ...crossingContList,
-//         uuidv4()
-//     ])
-//   }
-  {/* this function takes the items in the list that is unique ids and adds crossing container component over how many times items or ids are there*/}
-//   const crossingElmt = crossingContList.map(id => {
-//     return (
-//         <CrossingContainer id={id} handleCrossingContainerDelete={handleCrossingContainerDelete} key={id} />
-//     )
-//   })
-  {/* toggles between edit button is clicked */}
-  function handleEdit() {
-    setIsEditing(prev => !prev)
+  useEffect(()=> {
+    const fetchUrls = async ()=> {
+        if(!userId) {
+            return;
+        }
+        try {
+            const {data, error} = await supabase
+                .from('intersection_videos')
+                .select('urls')
+                .eq('user_id', userId)
+                .eq('intersection_id', id)
+                .single();
+            if (error) {
+                throw error;
+                return;
+            }
+            if(data && data.urls) {
+                setVideoUrls(data.urls);
+            }
+
+        } catch (error) {
+            console.error('Error occured while fetching urls: ', error)
+        }
+    }
+    fetchUrls();
+  }, [userId, id])
+
+  const handleSaveToDB = async () => {
+      if(!userId) return;
+      const { error } = await supabase
+          .from('intersection_videos')
+          .upsert({
+              user_id: userId,
+              intersection_id: id,
+              urls: videoUrls
+          }, { onConflict: 'user_id, intersection_id' }); // Uses the unique constraint
+
+      if (error) {
+          console.error("Error saving videos:", error);
+      } else {
+          setIsEditing(false); // Close edit mode on success
+      }
+  };
+
+  function handleEditToggle() {
+    if (isEditing) {
+        handleSaveToDB();
+    } else {
+        setIsEditing(true);
+    }
   }
-  {/* if the button is clicked ouside of the input box that is name of the crossing input box the box becomes non focus */}
-  const handleBlur = () => setContainerNameEdit(false);
+
+  // Update specific index in array
+  const handleUrlChange = (index, newUrl) => {
+    const newVideoUrls = [...videoUrls];
+    newVideoUrls[index] = newUrl;
+    setVideoUrls(newVideoUrls);
+  };
+
+  {/* handle Delete function */}
+  const handleDelete = async () => {
+    // Make sure we have a user logged in
+    if (!userId) {
+        console.error("No user found");
+        return;
+    }
+
+    // 1. Calculate the new grid without the deleted intersection
+    const updateGrid = grid.map(row => 
+        row.filter(item => item !== id)
+    ).filter(row => row.length > 0); // removes empty rows
+    
+    // Update local React state immediately for a snappy UI response
+    setGrid(updateGrid);
+
+    // 2. Save the new grid layout to the database
+    const { error: gridError } = await supabase
+        .from('user_grids')
+        .upsert(
+            { user_id: userId, grid_data: updateGrid }, 
+            { onConflict: 'user_id' }
+        );
+
+    if (gridError) {
+        console.error("Error updating grid in database:", gridError);
+        alert("Failed to delete intersection from database.");
+        return; // Stop here if the database update fails
+    }
+
+    // 3. (Optional but recommended) Delete the saved videos for this specific intersection
+    const { error: videoError } = await supabase
+        .from('intersection_videos')
+        .delete()
+        .eq('user_id', userId)
+        .eq('intersection_id', id);
+
+    if (videoError) {
+        console.error("Error deleting intersection videos from database:", videoError);
+    }
+
+    // 4. Finally, navigate back to the live feed
+    navigate("/user/livefeed");
+  };
 
   return (
     <div className='mb-10'>
@@ -55,30 +131,17 @@ function PagePerIntersection() {
             <div className='mb-3 flex justify-between'>
                 {/* input box to change the name of the crossing */}
                 <div className="ml-4">
-                    {containerNameEdit ? (
-                        <input
-                        type="text"
-                        value={containerName}
-                        onChange={(e) => setContainerName(e.target.value)}
-                        onBlur={handleBlur}
-                        autoFocus
-                        className="border px-2 py-1 rounded"
-                        />
-                    ) : (
-                        <h2 onClick={() => setContainerNameEdit(true)} className="cursor-pointer">
-                        {containerName}
-                        </h2>
-                    )}
+                    <h2>Viewing: {id} </h2>
                 </div>
                 <div className='flex'>
                     <div className='flex'>
                         {/* Save button */}
-                        {isEditing?<div onClick={handleEdit} className='border border-neutral-400 rounded-md px-3 hover:bg-lime-400 mr-4 py-1'>
+                        {isEditing?<div onClick={handleEditToggle} className='border border-neutral-400 rounded-md px-3 hover:bg-lime-400 mr-4 py-1'>
                             <button>Save</button>
                         </div>
                         :
                         //Edit button
-                        <div onClick={handleEdit} className='w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4'>
+                        <div onClick={handleEditToggle} className='w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4'>
                             <FaPenSquare className='h-6 mr-1.5'/>
                             <button>Edit</button>
                         </div>}
@@ -91,9 +154,11 @@ function PagePerIntersection() {
                             Close
                         </div>
                     </Link>
-                    <div className='ml-2 w-20 flex border border-neutral-400 rounded-md pl-1     hover:bg-violet-200 py-1 mr-4'>
+                    <div className='ml-2 w-20 flex border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-neutral-200 rounded-md pl-1 py-1 mr-4'>
                         <FaMinusCircle className='h-6 mr-1.5'/>
-                        <button className=''>
+                        <button 
+                            onClick={handleDelete}
+                        >
                             Delete
                         </button>
                     </div>
@@ -103,25 +168,16 @@ function PagePerIntersection() {
             </div>
             {/* 1 video container so in crossing container it will be 4 */}
             <div className='flex flex-wrap justify-between'>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-                <VideoContainer isediting={isEditing}/>
-
+                {videoUrls.map((url, index) => (
+                    <VideoContainer 
+                        key={index}
+                        isediting={isEditing}
+                        urlLink = {url}
+                        onUrlChange={(newUrl) => handleUrlChange(index, newUrl)}
+                    />
+                ))}
             </div>
         </div>
-        {/* Display toggle crossing container */}
-        {/* {crossingElmt}
-        <div className='flex flex-row-reverse mr-7 mt-3'>
-            <span className='flex py-1 border border-neutral-400 mt-1 mb-4 mr-4 rounded-sm px-2 hover:bg-violet-200'>
-                <IoIosAddCircle className='h-6 mr-1' />
-                <button onClick={ToggleCrossingContainer} className=''>Add new crossing</button>
-            </span>
-        </div> */}
     </div>
     )
 }

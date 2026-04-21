@@ -1,12 +1,7 @@
 import { useState } from "react";
-import { FaPenSquare } from "react-icons/fa";
 import ReactPlayer from 'react-player'
 
-export default function VideoContainer(props) {
-    const [urlLink, setUrlLink] = useState('');
-    const handleUrlChange = (event) => {
-        setUrlLink(event.target.value);
-    }
+export default function VideoContainer({ isediting, urlLink, onUrlChange }) {
     return(
         <div className='p-3'>
             {/* video feed inside here */}
@@ -14,18 +9,14 @@ export default function VideoContainer(props) {
                 <ReactPlayer controls={true} height='280px' width='500px' src= {urlLink}/>
             </div>
             {/* if edit button is clicked then api key entry will show up */}
-            {props.isediting?<div className='flex mt-2'>
+            {isediting?<div className='flex mt-2'>
                 <input 
                     type="text"
                     value={urlLink}
-                    onChange={handleUrlChange}
-                    placeholder='enter api key' 
-                    className='py-1 px-2 border border-neutral-400 rounded-md mr-2 h-8'
+                    onChange={(e)=> onUrlChange(e.target.value)}
+                    placeholder='enter video link' 
+                    className='py-1 px-2 border border-neutral-400 rounded-md h-8 w-120 text-center'
                 />
-                <span className='flex border border-neutral-400 mb-4 mr-4 rounded-md px-2 hover:bg-violet-200 h-8'>
-                    <FaPenSquare className='h-7 mr-1.5'/>
-                    <button className=''>Add</button>
-                </span>
             </div>
             :
             null}

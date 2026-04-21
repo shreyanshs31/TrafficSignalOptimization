@@ -135,25 +135,6 @@ export const AuthProvider = ({children})=> {
         }
     }
 
-
-    // {/* Delete account function  */}
-    // const deleteUser = async(id) => {
-    //     try {
-    //         const {data, error} = await supabase.auth.admin.deleteUser(
-    //             id
-    //         );
-    //         if (error) {
-    //             console.error('Supabase delete user error: ', error.message);
-    //             return {success: false, error: error.message};
-    //         }
-    //         console.log('Supabase delete user successful');
-    //         return {success: true, data};
-    //     } catch ( error ) {
-    //         console.error('Unexpected error occured during deleting user: ', error.message);
-    //         return {success: false, error: 'An unexpected error occured. Please try again'};
-    //     }
-    // }
-
     return (
         <AuthContext.Provider value={{session, signInUser, signOut, signUpNewUser, updatePass, updateEmail, updatePassWithOtp}}>
             {children}
