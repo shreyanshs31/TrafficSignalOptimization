@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { IoIosAddCircle , IoMdCloseCircle} from "react-icons/io";
 import { FaPenSquare, FaMinusCircle } from "react-icons/fa";
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import VideoContainer from './VideoContainer.jsx';
 import supabase from '../../auth/supabaseClient.js';
 import { useAuth } from '../../auth/AuthProvider.jsx';
@@ -10,8 +11,11 @@ function PagePerIntersection({grid, setGrid}) {
   const { id } = useParams(); // use to read dynamic paramaters from the url
   const navigate = useNavigate();
   const {session} = useAuth();
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const userId = session?.user?.id;
 
+  const [liveState, setLiveState] = useState({ active_lane: null, timer: 0 });
 
   {/* this handles the state when user clicks the edit button in the container */}
   const [isEditing, setIsEditing] = useState(false)
@@ -19,11 +23,10 @@ function PagePerIntersection({grid, setGrid}) {
   {/* track 8 urls in an array */}
   const [videoUrls, setVideoUrls] = useState(Array(8).fill(''));
 
-  useEffect(()=> {
-    const fetchUrls = async ()=> {
-        if(!userId) {
-            return;
-        }
+  useEffect(() => {
+    const fetchUrls = async () => {
+        if(!userId) return;
+        
         try {
             const {data, error} = await supabase
                 .from('intersection_videos')
@@ -31,12 +34,13 @@ function PagePerIntersection({grid, setGrid}) {
                 .eq('user_id', userId)
                 .eq('intersection_id', id)
                 .single();
-            if (error) {
-                throw error;
-                return;
-            }
+                
+            if (error) throw error;
+            
             if(data && data.urls) {
                 setVideoUrls(data.urls);
+                // 3. Kick off the AI processing loop immediately
+                autoRunAnalysis(data.urls);
             }
 
         } catch (error) {
@@ -44,7 +48,54 @@ function PagePerIntersection({grid, setGrid}) {
         }
     }
     fetchUrls();
-  }, [userId, id])
+  }, [userId, id]);
+
+
+  useEffect(() => {
+      // Create a polling loop that asks the backend for the timer every 1 second
+      const fetchLiveState = async () => {
+          try {
+              const res = await axios.get('http://localhost:8001/api/state');
+              setLiveState(res.data);
+          } catch (error) {
+              // Silently fail if the server is temporarily unreachable
+          }
+      };
+
+      const intervalId = setInterval(fetchLiveState, 1000);
+
+      // Cleanup the interval when you close the intersection view
+      return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+        try {
+            const res = await axios.get('http://localhost:8001/api/dashboard');
+            // This updates the table with new densities and accident alerts
+            setAnalysisData(res.data); 
+        } catch (error) { /* handle error */ }
+    };
+    const intervalId = setInterval(fetchDashboard, 5000); // Sync with 5s backend cycle
+    return () => clearInterval(intervalId);
+    }, []);
+
+    const autoRunAnalysis = async (loadedUrls) => {
+    // Don't trigger if the URLs are empty
+    if (!loadedUrls || loadedUrls.every(url => url === '')) return;
+
+    try {
+        // Send the POST request to port 8001 automatically
+        const response = await axios.post('http://localhost:8001/predict', {
+        intersection_id: id,
+        urls: loadedUrls 
+        });
+        // This sets the initial state
+        setAnalysisData(response.data);
+    } catch (error) {
+        console.error("Auto-analysis failed to start:", error);
+    }
+    };
 
   const handleSaveToDB = async () => {
       if(!userId) return;
@@ -135,7 +186,6 @@ function PagePerIntersection({grid, setGrid}) {
                 </div>
                 <div className='flex'>
                     <div className='flex'>
-                        {/* Save button */}
                         {isEditing?<div onClick={handleEditToggle} className='border border-neutral-400 rounded-md px-3 hover:bg-lime-400 mr-4 py-1'>
                             <button>Save</button>
                         </div>
@@ -166,6 +216,84 @@ function PagePerIntersection({grid, setGrid}) {
                 </div>
 
             </div>
+            {/* .................................................................. */}
+            {/* Display Results if available */}
+            {analysisData && analysisData.signal_timing && analysisData.signal_timing.length > 0 && (
+                <div className="analysis-results p-4 bg-gray-100 rounded-md mb-6 w-full shadow-inner">
+                    <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-lg font-bold text-neutral-700">Live Signal Timings</h3>
+                        {/* Show a live status indicator */}
+                        <div className="flex items-center text-sm font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full animate-pulse">
+                            <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                            Live System Active
+                        </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white border border-neutral-300 rounded-lg overflow-hidden">
+                            <thead className="bg-neutral-200 text-neutral-700">
+                                <tr>
+                                    <th className="py-2 px-4 border-b text-left">Lane</th>
+                                    <th className="py-2 px-4 border-b text-center">Status / Timer</th>
+                                    <th className="py-2 px-4 border-b text-center">Density</th>
+                                    <th className="py-2 px-4 border-b text-center">Priority Score</th>
+                                    <th className="py-2 px-4 border-b text-center">Alerts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {analysisData.signal_timing.map((timing, idx) => {
+                                    // Check if this row is the currently active green light
+                                    const isActive = liveState.active_lane === timing.lane.toLowerCase();
+
+                                    // Check if there's any critical alert for the row
+                                    const hasAlert = timing.is_emergency || timing.accident;
+
+                                    return (
+                                        <tr 
+                                            key={idx} 
+                                            className={`transition-all duration-300 ${isActive ? 'bg-green-50 border-l-4 border-green-500 shadow-sm' : hasAlert ? 'bg-red-50 border-l-4 border-red-500' : 'hover:bg-neutral-50 border-l-4 border-transparent'}`}
+                                        >
+                                            <td className="py-3 px-4 border-b font-semibold text-neutral-700">
+                                                {timing.lane}
+                                            </td>
+                                            <td className="py-3 px-4 border-b text-center font-bold">
+                                                {isActive ? (
+                                                    <span className="text-2xl text-green-600">{liveState.timer}s</span>
+                                                ) : (
+                                                    <span className="text-neutral-400 font-medium">Queued ({timing.green_time}s)</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3 px-4 border-b text-center text-neutral-600">
+                                                {timing.density}%
+                                            </td>
+                                            <td className="py-3 px-4 border-b text-center text-neutral-600">
+                                                {timing.priority}
+                                            </td>
+                                            <td className="py-3 px-4 border-b text-center">
+                                                <div className="flex flex-col items-center justify-center gap-1">
+                                                    {timing.is_emergency && (
+                                                        <span className="bg-red-100 text-red-700 border border-red-300 px-2 py-1 rounded-md text-xs font-bold animate-pulse shadow-sm w-full">
+                                                            🚑 Ambulance
+                                                        </span>
+                                                    )}
+                                                    {timing.accident && (
+                                                        <span className="bg-orange-100 text-orange-700 border border-orange-300 px-2 py-1 rounded-md text-xs font-bold animate-pulse shadow-sm w-full">
+                                                            ⚠️ Accident
+                                                        </span>
+                                                    )}
+                                                    {!timing.is_emergency && !timing.accident && (
+                                                        <span className="text-neutral-400 text-sm font-medium">Clear</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
             {/* 1 video container so in crossing container it will be 4 */}
             <div className='flex flex-wrap justify-between'>
                 {videoUrls.map((url, index) => (

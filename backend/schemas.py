@@ -29,3 +29,7 @@ class PredictResponse(BaseModel):
     signal_timing: List[SignalTimingRow]
     vehicle_counts: List[VehicleCountRow]
     charts: Charts
+
+class VideoAnalysisRequest(BaseModel):
+    intersection_id: str
+    urls: List[str]

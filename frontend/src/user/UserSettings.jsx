@@ -10,7 +10,6 @@ function UserSettings() {
   const [isDirty, setIsDirty] = useState(false)
   const [cameraFailToggle, setCameraFailToggle] = useState(true)
   const [accidentDetectionToggle, setAccidentDetectionToggle] = useState(true)
-  // const [manualOverrideToggle, setManualOverrideToggle] = useState(true)
   const [intersectionToggle , setIntersectionToggle] = useState(true)
   const [reportsToggle, setReportsToggle] = useState(true)
   const [emails, setEmails] = useState('')
@@ -80,7 +79,6 @@ function UserSettings() {
           user_id: session.user.id,
           camera_fail: cameraFailToggle,
           accident_detection: accidentDetectionToggle,
-          // manual_override: manualOverrideToggle,
           intersection_updates: intersectionToggle,
           reports: reportsToggle,
         },
@@ -93,7 +91,6 @@ function UserSettings() {
       setOriginalSettings({
         cameraFailToggle,
         accidentDetectionToggle,
-        // manualOverrideToggle,
         intersectionToggle,
         reportsToggle
       });
@@ -123,14 +120,12 @@ function UserSettings() {
         const loaded = {
           cameraFailToggle: data.camera_fail,
           accidentDetectionToggle: data.accident_detection,
-          // manualOverrideToggle: data.manual_override,
           intersectionToggle: data.intersection_updates,
           reportsToggle: data.reports
         }
         // Set both current and original states
         setCameraFailToggle(loaded.cameraFailToggle);
         setAccidentDetectionToggle(loaded.accidentDetectionToggle);
-        // setManualOverrideToggle(loaded.manualOverrideToggle);
         setIntersectionToggle(loaded.intersectionToggle);
         setReportsToggle(loaded.reportsToggle);
         setOriginalSettings(loaded);
@@ -146,8 +141,7 @@ function UserSettings() {
   useEffect(() => {
     const current = { 
       cameraFailToggle, 
-      accidentDetectionToggle, 
-      // manualOverrideToggle, 
+      accidentDetectionToggle,  
       intersectionToggle, 
       reportsToggle 
     };
@@ -336,21 +330,6 @@ function UserSettings() {
           </label>
           <hr className='w-full text-neutral-400 mt-3' />
           
-          {/* Manual Override */}
-          {/* <p className='font-semibold mt-4'>Manual Override</p>
-          <p className='text-neutral-600 mb-3'>Whenever manual override is turned on or off</p>
-          <label className="inline-flex items-center cursor-pointer">
-            <input 
-              type="checkbox" 
-              value="" 
-              className="sr-only peer" 
-              checked={manualOverrideToggle} 
-              onChange={() => setManualOverrideToggle(prev=>!prev)}
-            />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-            <span className="ms-3 text-sm font-medium text-neutral-900">{manualOverrideToggle?"ON":"OFF"}</span>
-          </label>
-          <hr className='w-full text-neutral-400 mt-3'/> */}
           
           {/* Intersections Additions/Removal */}
           <p className='font-semibold mt-4'>Intersections Additions/Removal</p>
@@ -386,13 +365,6 @@ function UserSettings() {
         </div>
       </div>
 
-      {/* Delete section
-      <div className='border border-rose-800 rounded-md pt-2 pb-5 pr-2 -ml-2'>
-        <h1 className='text-rose-700 text-2xl font-bold mb-1.5 ml-2'>Danger Zone</h1>
-        <hr className='w-full text-neutral-400 ml-2' />
-        <p className='mt-2 text-neutral-800 font-light ml-2'>Once you delete your account, <span className='font-medium'>there is no going back.</span> Please be certain.</p>
-        <button onClick={handleDeleteUser} className='ml-2 mt-4 border border-neutral-400 text-rose-700 hover:bg-rose-700 hover:text-neutral-300 rounded-md px-2 py-1 font-medium hover:shadow-md'>Delete your account</button>
-      </div> */}
     </div>
   )
 }

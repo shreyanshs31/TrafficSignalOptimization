@@ -251,9 +251,6 @@ function UserDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="bg-violet-400 h-96 rounded-4xl mr-11 mb-15">
-        <h4 className="p-8 text-neutral-800 text-lg text-center font-semibold">Accident Alert</h4>
-      </div>
     </div>
   )
 }

@@ -8,3 +8,5 @@ pydantic
 uvicorn
 torch
 python-multipart
+vidgear 
+yt-dlp
