@@ -3,3 +3,4 @@
 backend/models/*.pt
 # Ignore heavy frontend testing videos
 frontend/public/videos/*.mp4
+backend/models/*.pt
