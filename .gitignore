@@ -1,5 +1,6 @@
 *node_modules
 .env.local
 backend/models/*.pt
+backend/*.pt
 # Ignore heavy frontend testing videos
 frontend/public/videos/*.mp4
