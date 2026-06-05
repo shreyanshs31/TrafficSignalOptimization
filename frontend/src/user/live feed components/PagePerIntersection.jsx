@@ -12,7 +12,7 @@ function PagePerIntersection({grid, setGrid}) {
   const navigate = useNavigate();
   const {session} = useAuth();
   const [analysisData, setAnalysisData] = useState(null);
-  const [loading, setLoading] = useState(false);
+//   const [loading, setLoading] = useState(false);
   const userId = session?.user?.id;
 
   const [liveState, setLiveState] = useState({ active_lane: null, timer: 0 });
@@ -59,6 +59,7 @@ function PagePerIntersection({grid, setGrid}) {
               setLiveState(res.data);
           } catch (error) {
               // Silently fail if the server is temporarily unreachable
+              console.error(error)
           }
       };
 
@@ -74,7 +75,9 @@ function PagePerIntersection({grid, setGrid}) {
             const res = await axios.get('http://localhost:8001/api/dashboard');
             // This updates the table with new densities and accident alerts
             setAnalysisData(res.data); 
-        } catch (error) { /* handle error */ }
+        } catch (error) { 
+            console.error(error);
+        }
     };
     const intervalId = setInterval(fetchDashboard, 5000); // Sync with 5s backend cycle
     return () => clearInterval(intervalId);
@@ -96,6 +99,25 @@ function PagePerIntersection({grid, setGrid}) {
         console.error("Auto-analysis failed to start:", error);
     }
     };
+
+    const handleClose = async () => {
+      try {
+          // Tell the backend to stop cooking!
+          await axios.post('http://localhost:8001/stop');
+      } catch (error) {
+          console.error("Failed to stop backend processing:", error);
+      } finally {
+          // No matter what happens, navigate the user away
+          navigate("/user/livefeed");
+      }
+    };
+
+    useEffect(() => {
+      return () => {
+          // This fires right as the component is destroyed
+          axios.post('http://localhost:8001/stop').catch(err => console.error(err));
+        }
+    }, []);
 
   const handleSaveToDB = async () => {
       if(!userId) return;
@@ -170,6 +192,12 @@ function PagePerIntersection({grid, setGrid}) {
         console.error("Error deleting intersection videos from database:", videoError);
     }
 
+    try {
+        await axios.post('http://localhost:8001/stop');
+    } catch (error) {
+        console.error('Failed to stop video processing on delete', error);
+    }
+
     // 4. Finally, navigate back to the live feed
     navigate("/user/livefeed");
   };
@@ -198,12 +226,19 @@ function PagePerIntersection({grid, setGrid}) {
                         
                     </div>
                     {/* used to go back to the /user/livefeed */}
-                    <Link to="/user/livefeed">
+                    {/* <Link to="/user/livefeed">
                         <div className='ml-2 w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4'>
                             <IoMdCloseCircle className='h-6 mr-1.5'/>
                             Close
                         </div>
-                    </Link>
+                    </Link> */}
+                    <button
+                        onClick={handleClose}
+                        className='ml-2 w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4 items-center cursor-pointer'
+                    >
+                        <IoMdCloseCircle className='h-6 mr-1.5'/>
+                        Close
+                    </button>
                     <div className='ml-2 w-20 flex border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-neutral-200 rounded-md pl-1 py-1 mr-4'>
                         <FaMinusCircle className='h-6 mr-1.5'/>
                         <button 

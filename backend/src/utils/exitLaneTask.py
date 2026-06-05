@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-class DirectionSensor:
+class ExitSensor:
     def __init__(self, lane_id):
         """
         Initializes the exit flow sensor for a specific lane.
@@ -53,22 +53,22 @@ class DirectionSensor:
             "intensity": moving_pixels
         }
 
-# Logic Verification (for testing)
-if __name__ == "__main__":
-    sensor = DirectionSensor("north")
-    # Using your camera or a video file for testing
-    cap = cv2.VideoCapture(0) 
+# # Logic Verification (for testing)
+# if __name__ == "__main__":
+#     sensor = ExitSensor("north")
+#     # Using your camera or a video file for testing
+#     cap = cv2.VideoCapture(0) 
     
-    while True:
-        ret, frame = cap.read()
-        if not ret: break
+#     while True:
+#         ret, frame = cap.read()
+#         if not ret: break
         
-        data = sensor.process_frame(frame)
-        if data["status"] == "flowing":
-            print(f"✅ Flow Verified: Vehicles clearing {data['lane']}ward")
+#         data = sensor.process_frame(frame)
+#         if data["status"] == "flowing":
+#             print(f"✅ Flow Verified: Vehicles clearing {data['lane']}ward")
             
-        cv2.imshow(f"Exit Feed - {sensor.lane_id}", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    cap.release()
-    cv2.destroyAllWindows()
+#         cv2.imshow(f"Exit Feed - {sensor.lane_id}", frame)
+#         if cv2.waitKey(1) & 0xFF == ord('q'):
+#             break
+#     cap.release()
+#     cv2.destroyAllWindows()

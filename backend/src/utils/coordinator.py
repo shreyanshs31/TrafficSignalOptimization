@@ -1,7 +1,7 @@
 import logging
 import datetime
 
-# Setting up professional logging for final year project
+# Setting up professional logging 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TrafficCoordinator")
 
@@ -9,7 +9,7 @@ class NetworkCoordinator:
     def __init__(self):
         """
         The Registry stores the real-time state of every lane.
-        Structure: { "junction_id": { "lane_id": { status_data } } }
+        Structure: { "intersection_id": { "lane_id": { status_data } } }
         """
         self.registry = {}
         

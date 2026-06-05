@@ -46,9 +46,11 @@ class IntersectionAgent:
 
         # 3. Fuzzy Logic
         is_emergency = len(a_res.boxes) > 0
-        self.simulator.input['vehicle_count'] = min(30, len(t_res.boxes))
-        self.simulator.input['density'] = min(100, (weighted_sum / 20) * 100)
-        self.simulator.input['urgency'] = 100 if is_emergency else 0
+        self.simulator.input['vehicle_count'] = min(40, len(t_res.boxes))
+        total_area = (frame_w - edge_margin)*(frame_h - edge_margin)
+        self.simulator.input['density'] = min(100, (weighted_sum / total_area) * 100)
+        self.simulator.input['urgency'] = 1 if is_emergency else 0
+        self.simulator.input['waiting_time'] = 0
         self.simulator.compute()
         
         priority_score = self.simulator.output['priority'] * flow_multiplier

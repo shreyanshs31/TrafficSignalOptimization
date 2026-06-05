@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { FaPlusCircle } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import supabase from '../auth/supabaseClient';
@@ -24,8 +24,6 @@ function UserLiveFeed({grid , setGrid}) {
                         .single()
                     if(error) {
                         throw error;
-                        return;
-                        
                     }
                     if(data && data.grid_data) {
                         setGrid(data.grid_data);
