@@ -72,7 +72,11 @@ function PagePerIntersection({grid, setGrid}) {
   useEffect(() => {
     const fetchDashboard = async () => {
         try {
-            const res = await axios.get('http://localhost:8001/api/dashboard');
+            const res = await axios.get('http://localhost:8001/api/dashboard', {
+                params: {
+                    intersection_id: id
+                }
+            });
             // This updates the table with new densities and accident alerts
             setAnalysisData(res.data); 
         } catch (error) { 

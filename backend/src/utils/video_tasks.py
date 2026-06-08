@@ -4,7 +4,7 @@ import cv2
 from typing import List
 from src.utils import state
 
-async def process_video_streams(urls: List[str]):
+async def process_video_streams(urls: List[str], intersection_id: str):
     """
     Background task that reads frames from URLs every 5 seconds 
     and updates the global traffic state.
@@ -35,11 +35,17 @@ async def process_video_streams(urls: List[str]):
                 lane_id = lane_map[i]
                 
                 try:
-                    junction_data = state.coordinator.registry.get("junction_01", {}).get(lane_id, {})
+                    junction_data = state.coordinator.registry.get(intersection_id, {}).get(lane_id, {})
                     multiplier = junction_data.get("flow_multiplier", 1.0)
+
+                    #Ask the manager for the wait time ---
+                    current_wait_time = state.manager.get_lane_waiting_time(lane_id)
+    
+                    # Pass the wait time to the agent ---
+                    results = await asyncio.to_thread(state.agent.process_lane, lane_id, frame, current_wait_time, multiplier)
                     
                     # Run AI Analysis using shared agent
-                    results = await asyncio.to_thread(state.agent.process_lane, lane_id, frame, multiplier)
+                    # results = await asyncio.to_thread(state.agent.process_lane, lane_id, frame, multiplier)
                     
                     # Update Timings via shared manager
                     state.manager.ai_timings[lane_id] = results["recommended_time"]
@@ -50,8 +56,8 @@ async def process_video_streams(urls: List[str]):
                         state.manager.target_end_time = time.time() + 60 
                         is_active = True
 
-                    state.coordinator.update_lane_state("junction_01", lane_id, {**results, "is_active": is_active})
-                    print(f"✅ AI Processed {lane_id}: Vehicles = {sum(results['stats'].values())}, Priority Time = {results['recommended_time']}s")
+                    state.coordinator.update_lane_state(intersection_id, lane_id, {**results, "is_active": is_active})
+                    print(f"✅ AI Processed {lane_id}: Vehicles = {sum(results['stats'].values())}, Priority Time = {results['recommended_time']}")
                     
                 except Exception as lane_error:
                     print(f"🚨 AI PROCESSING ERROR on {lane_id} lane: {lane_error}")
@@ -65,7 +71,7 @@ async def process_video_streams(urls: List[str]):
                         lane_id = lane_map[i-4]
                         sensor = state.exit_sensors.get(lane_id)
                         exit_results = await asyncio.to_thread(sensor.process_frame, frame)
-                        state.coordinator.update_exit_flow("junction_01", lane_id, exit_results["status"])
+                        state.coordinator.update_exit_flow(intersection_id, lane_id, exit_results["status"])
                     except Exception as exit_error:
                         print(f"🚨 EXIT SENSOR ERROR on {lane_id} lane: {exit_error}")
 

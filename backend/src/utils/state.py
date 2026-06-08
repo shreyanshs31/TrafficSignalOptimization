@@ -16,9 +16,23 @@ class TrafficCycleManager:
         self.timer = 30
         self.target_end_time = time.time() + 30
         self.ai_timings = {l: 30 for l in self.lanes}
+        self.waiting_times = {l: 0 for l in self.lanes}
+        self.last_tick = time.time()
 
     def run_cycle(self):
         now = time.time()
+        #Calculate how much time passed since last tick
+        elapsed = now - self.last_tick
+        self.last_tick = now
+        active_lane = self.lanes[self.current_idx]
+
+        # Update the stopwatches!
+        for lane in self.lanes:
+            if lane == active_lane:
+                self.waiting_times[lane] = 0  # Green light! Wait is over.
+            else:
+                self.waiting_times[lane] += elapsed # Red light! Keep adding time.
+        
         self.timer = max(0, int(self.target_end_time - now))
         if self.timer <= 0:
             self.current_idx = (self.current_idx + 1) % len(self.lanes)
@@ -26,6 +40,9 @@ class TrafficCycleManager:
             new_duration = self.ai_timings.get(active_lane, 30)
             self.target_end_time = time.time() + new_duration
             self.timer = new_duration
+    
+    def get_lane_waiting_time(self, lane_id):
+        return int(self.waiting_times.get(lane_id, 0))
 
 manager = TrafficCycleManager()
 processing_active = False

@@ -14,11 +14,11 @@ async def predict_traffic(request: PredictRequest, background_tasks: BackgroundT
     await asyncio.sleep(1)            # Brief pause to allow release
     
     state.processing_active = True  # Enable processing flag
-    background_tasks.add_task(process_video_streams, request.urls)
+    background_tasks.add_task(process_video_streams, request.urls, request.intersection_id)
     
     signal_timing = []
     for lane in ["north", "east", "south", "west"]:
-        lane_data = state.coordinator.registry.get("junction_01", {}).get(lane, {})
+        lane_data = state.coordinator.registry.get(request.intersection_id, {}).get(lane, {})
         signal_timing.append({
             "lane": lane.capitalize(),
             "green_time": state.manager.ai_timings.get(lane, 30),
@@ -37,9 +37,9 @@ async def get_state():
     }
 
 @router.get("/api/dashboard")
-async def get_dashboard():
+async def get_dashboard(intersection_id: str):
     """Returns the full registry including accident alerts and PCE stats."""
-    junction_data = state.coordinator.registry.get("junction_01", {})
+    junction_data = state.coordinator.registry.get(intersection_id, {})
     signal_timing = []
     for lane in ["north", "east", "south", "west"]:
         data = junction_data.get(lane, {})

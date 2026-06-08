@@ -2,6 +2,7 @@ import torch
 import cv2
 import base64
 from ultralytics import YOLO
+from src.utils.fuzzylogic import validate_and_compute
 
 class IntersectionAgent:
     def __init__(self, simulator):
@@ -21,7 +22,7 @@ class IntersectionAgent:
         self.accident_counters = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
         self.THRESHOLD_FRAMES = 4  # Requires ~1.5 seconds of detection at 4 FPS
 
-    def process_lane(self, lane_id, frame, flow_multiplier=1.0):
+    def process_lane(self, lane_id, frame, current_wait_time, flow_multiplier=1.0):
         frame_h, frame_w = frame.shape[:2]
         edge_margin = 30  # Ignore detections within 30px of the boundary
 
@@ -50,10 +51,24 @@ class IntersectionAgent:
         total_area = (frame_w - edge_margin)*(frame_h - edge_margin)
         self.simulator.input['density'] = min(100, (weighted_sum / total_area) * 100)
         self.simulator.input['urgency'] = 1 if is_emergency else 0
-        self.simulator.input['waiting_time'] = 0
-        self.simulator.compute()
+        # self.simulator.input['waiting_time'] = 0
+        # current_waiting_time = self.simulator.get_lane_waiting_time(lane_id)
+        # Compute fuzzy logic with validation
+        fuzzy_output = validate_and_compute(
+            self.simulator, 
+            {
+                'vehicle_count': min(40, len(t_res.boxes)),
+                'density': min(100, (weighted_sum / total_area) * 100),
+                'urgency': 1 if is_emergency else 0,
+                'waiting_time': min(120, current_wait_time)
+            }
+        )
         
-        priority_score = self.simulator.output['priority'] * flow_multiplier
+        if fuzzy_output is None:
+            print(f"⚠️  Fuzzy logic failed for {lane_id}, using default priority score")
+            priority_score = 50
+        else:
+            priority_score = fuzzy_output['priority'] * flow_multiplier
         recommended_time = 90 if is_emergency else int(10 + (priority_score / 100) * 50)
         self.recommended_timings[lane_id] = recommended_time
 

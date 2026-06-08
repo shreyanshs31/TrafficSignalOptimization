@@ -23,7 +23,7 @@ def setup_fuzzy_controller():
     # urgency: Presence of emergency vehicles (Binary but fuzzy, 0 or 100)
     urgency = ctrl.Antecedent(np.arange(0, 101, 1), 'urgency') 
 
-    waiting_time = ctrl.Antecedent(np.arange(0, 61, 1), 'waiting_time')
+    waiting_time = ctrl.Antecedent(np.arange(0, 121, 1), 'waiting_time')
 
     #----------------------------
 
@@ -47,8 +47,8 @@ def setup_fuzzy_controller():
     priority['very_high'] = fuzz.trimf(priority.universe, [90, 100, 100])
 
     #Urgency membership function 
-    urgency['normal'] = fuzz.trimf(priority.universe, [0, 0, 0.7])
-    urgency['emergency'] = fuzz.trimf(priority.universe, [0.5, 1, 1])
+    urgency['normal'] = fuzz.trimf(urgency.universe, [0, 0, 0.7])
+    urgency['emergency'] = fuzz.trimf(urgency.universe, [0.5, 1, 1])
 
     # Waiting time membership functions
     waiting_time['short'] = fuzz.trimf(waiting_time.universe, [0, 0, 45])
@@ -100,3 +100,33 @@ def setup_fuzzy_controller():
     traffic_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9])
 
     return ctrl.ControlSystemSimulation(traffic_ctrl)
+
+def validate_and_compute(simulator, inputs):
+    """
+    Safely compute the fuzzy logic output with validation.
+    
+    Args:
+        simulator: ControlSystemSimulation instance
+        inputs: Dict with 'vehicle_count', 'density', 'urgency', 'waiting_time'
+    
+    Returns:
+        Dict with 'priority' output, or None if computation fails
+    """
+    try:
+        # Set inputs with defaults
+        simulator.input['vehicle_count'] = inputs.get('vehicle_count', 0)
+        simulator.input['density'] = inputs.get('density', 0)
+        simulator.input['urgency'] = inputs.get('urgency', 0)
+        simulator.input['waiting_time'] = inputs.get('waiting_time', 0)
+        
+        # Compute the output
+        simulator.compute()
+        
+        # Validate output
+        if 'priority' not in simulator.output:
+            return None
+        
+        return {'priority': simulator.output['priority']}
+    except Exception as e:
+        print(f"❌ Fuzzy Logic Computation Error: {e}")
+        return None
