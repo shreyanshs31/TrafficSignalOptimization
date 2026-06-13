@@ -1,99 +1,150 @@
-<a id="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Unlicense License][license-shield]][license-url]
-[![Issues][issues-shield]][issues-url]
+# Traffic Signal Optimizer using Fuzzy Logic
 
+This project proposes an intelligent traffic signal
+optimisation system based on Artificial Intelligence using fuzzy logic and computer vision techniques. The system analyses real-time traffic density through video input and
+dynamically adjusts signal timings accordingly. Fuzzy logic is applied to handle uncertainties in traffic conditions and to make adaptive decisions, thereby improving traffic
+flow and minimising congestion. In addition to traffic optimisation, the system incorporates accident detection and emergency vehicle (ambulance) recognition. The system also
+identifies ambulances and provides priority by automatically controlling traffic signals, ensuring a clear path and reducing emergency response time.
 
-<br/>
-<br />
-<div align="center">
-    <h1 align="center">AI Traffic Signal Optimization</h1>
-    <br/>
-    <p>
-        <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-        &middot;
-        <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
-  </p>
-</div>
+## Demo
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-https://github.com/user-attachments/assets/cd23532a-9a5c-47aa-b6b7-d025023a55c8
-
-We developed an intelligent traffic management system that dynamically adjusts signal timings based on real-time traffic conditions. The system uses YOLOv8 to detect and count vehicles at intersections and applies Fuzzy Logic to determine optimal signal durations, aiming to minimize congestion and reduce waiting time.
-
-This AI-powered solution addresses growing urban traffic challenges by simulating real-world traffic scenarios and offering an adaptable, efficient approach to signal control and time management.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Insert gif or link to demo
 
 
-### Built With
+## Getting Started
+### Prerequisites
+- Python 3.7 or higher
+- pip (Python package installer)
+- Nodejs
+- npm 
+### Installation 
+1. **Clone the repository :**
+```bash
+git clone https://github.com/shreyanshs31/TrafficSignalOptimization.git
+cd TrafficSignalOptimization
+```
+2. **Create virtual environment in backend folder:**
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # On Windows:venv\Scripts\activate
+```
+3. **Install the required dependencies:**
+```bash
+pip install -r requirements.txt
+```
+4. **Install requirements for the frontend:**
+```bash
+cd frontend
+npm install
+```
+5. **Install models from hugging face:**
+```bash
+Open browser
+goto https://huggingface.co/harshraj193/traffic_optimization_project_models/tree/main
+paste accident_detection_3.pt and ambulance_best.pt
+inside backend/models folder
 
-![HTML5](https://skillicons.dev/icons?i=html)
-![CSS3](https://skillicons.dev/icons?i=css)
-![JavaScript](https://skillicons.dev/icons?i=js)
-![Python](https://skillicons.dev/icons?i=python)
-![React](https://skillicons.dev/icons?i=react)
-![Docker](https://skillicons.dev/icons?i=docker)
-![PyTorch](https://skillicons.dev/icons?i=pytorch)
-![scikit-learn](https://skillicons.dev/icons?i=sklearn)
+Open browser 
+goto https://huggingface.co/Ultralytics/YOLOv8/tree/main
+paste yolov8n.pt
+inside backend/models folder
+```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+6. **Connect to Supabase:**
+```bash
+create supabaseKeys.py
+inside cd backend/src/database/supabase/
+make two variables urlKey and secretKey
+urlKey has project url 
+secretKey has project secretKey
 
+create .env.local 
+inside cd frontend/
+make two variables VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY 
+VITE_SUPABASE_URL has project url
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY has publishable key
+```
+7. **Running the project:**
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn src.main:app --host 0.0.0.0 --port 8001 --reload
 
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Top contributors:
-
-<a href="https://github.com/shreyanshs31/TrafficSignalOptimization/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=shreyanshs31/TrafficSignalOptimization" alt="contrib.rocks image" />
-</a>
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
+cd frontend
+npm run dev
+```
+## Project structure
+```bash
+└── TrafficsignalOptimization/
+    ├── README.md
+    ├── docker-compose.yml
+    ├── LICENSE
+    ├── backend/
+    │   ├── Dockerfile
+    │   ├── .dockerignore
+    │   ├── reqirements/
+    │   │   └── requirements.txt
+    │   └── src/
+    │       ├── main.py
+    │       ├── api/
+    │       │   └── routes.py
+    │       ├── database/
+    │       │   └── supabase/
+    │       │       └── supabaseClient.py
+    │       ├── schemas/
+    │       │   └── schemas.py
+    │       └── utils/
+    │           ├── coordinator.py
+    │           ├── exitLaneTask.py
+    │           ├── fuzzylogic.py
+    │           ├── optimizer.py
+    │           ├── state.py
+    │           └── video_tasks.py
+    └── frontend/
+        ├── Dockerfile
+        ├── eslint.config.js
+        ├── index.html
+        ├── package.json
+        ├── vite.config.js
+        ├── .dockerignore
+        └── src/
+            ├── api.js
+            ├── App.jsx
+            ├── index.css
+            ├── index.jsx
+            ├── RouteRedirect.jsx
+            ├── auth/
+            │   ├── AuthProvider.jsx
+            │   ├── ProtectedRoute.jsx
+            │   └── supabaseClient.js
+            ├── home/
+            │   ├── Header.jsx
+            │   ├── Home.jsx
+            │   └── NavBar.jsx
+            ├── login_signup/
+            │   ├── ForgotPass.jsx
+            │   ├── Login.jsx
+            │   ├── Signup.jsx
+            │   └── Termsandconditions.jsx
+            └── user/
+                ├── UserDashboard.jsx
+                ├── UserLiveFeed.jsx
+                ├── UserSettings.jsx
+                ├── Layout/
+                │   ├── UserNavBar.jsx
+                │   ├── UserPageLayout.jsx
+                │   └── UserSideBar.jsx
+                └── live feed components/
+                    ├── PagePerIntersection.jsx
+                    └── VideoContainer.jsx
+```
 ## License
-
 Distributed under the GPL-3.0. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Authors
 
-<!-- CONTACT -->
-## Contact
+- [@ShreyanshS31](https://github.com/shreyanshs31)
 
-Name - [@ShreyanshS31](https://x.com/ShreyanshS31)
-
-Project Link: [https://github.com/shreyanshs31/TrafficSignalOptimization](https://github.com/shreyanshs31/TrafficSignalOptimization)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-
-[contributors-shield]: https://img.shields.io/github/contributors/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
-[contributors-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
-[forks-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/network/members
-[stars-shield]: https://img.shields.io/github/stars/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
-[stars-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/stargazers
-[license-shield]: https://img.shields.io/github/license/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
-[license-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/blob/master/LICENSE.txt
-[issues-shield]: https://img.shields.io/github/issues/shreyanshs31/TrafficSignalOptimization.svg?style=for-the-badge
-[issues-url]: https://github.com/shreyanshs31/TrafficSignalOptimization/issues
