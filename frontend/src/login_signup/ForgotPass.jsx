@@ -1,4 +1,3 @@
-// import { FaLock } from "react-icons/fa";
 import { IoMdMail } from "react-icons/io";
 import { IoIosArrowBack } from "react-icons/io";
 import { Link } from "react-router-dom";
@@ -48,13 +47,6 @@ export default function ForgotPass() {
                             />
                             <IoMdMail className="absolute right-5 top-9/10 text-md"/>
                         </div>
-                        {/* <div className="relative w-full h-12 my-10">
-                            <label htmlFor="loginpassword" className="p-2 text-lg">OTP</label>
-                            <input maxLength="6" id="loginpassword" className="focus:border-neutral-600 w-full h-full bg-transparent outline-none border-2 border-neutral-400 rounded-4xl placeholder:text-neutral-800 placeholder:font-medium text-lg font-medium py-5 pr-11 pl-5" type="password"
-                            placeholder="******" 
-                            required/>
-                            <FaLock className="absolute right-5 top-9/10 text-md"/>
-                        </div> */}
                         {/* Otp Error Message display */}
                         { error && (
                             <p className='mb-3 ml-10 px-1 text-sm font-medium text-rose-600'>

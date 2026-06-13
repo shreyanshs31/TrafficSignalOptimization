@@ -10,3 +10,6 @@ torch
 python-multipart
 vidgear 
 yt-dlp
+supabase
+python-dotenv
+psycopg2-binary

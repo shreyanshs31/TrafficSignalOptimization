@@ -12,7 +12,6 @@ function PagePerIntersection({grid, setGrid}) {
   const navigate = useNavigate();
   const {session} = useAuth();
   const [analysisData, setAnalysisData] = useState(null);
-//   const [loading, setLoading] = useState(false);
   const userId = session?.user?.id;
 
   const [liveState, setLiveState] = useState({ active_lane: null, timer: 0 });
@@ -95,7 +94,8 @@ function PagePerIntersection({grid, setGrid}) {
         // Send the POST request to port 8001 automatically
         const response = await axios.post('http://localhost:8001/predict', {
         intersection_id: id,
-        urls: loadedUrls 
+        urls: loadedUrls,
+        user_id: userId
         });
         // This sets the initial state
         setAnalysisData(response.data);
@@ -229,13 +229,6 @@ function PagePerIntersection({grid, setGrid}) {
                         </div>}
                         
                     </div>
-                    {/* used to go back to the /user/livefeed */}
-                    {/* <Link to="/user/livefeed">
-                        <div className='ml-2 w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4'>
-                            <IoMdCloseCircle className='h-6 mr-1.5'/>
-                            Close
-                        </div>
-                    </Link> */}
                     <button
                         onClick={handleClose}
                         className='ml-2 w-20 flex border border-neutral-400 rounded-md px-2 hover:bg-violet-200 py-1 mr-4 items-center cursor-pointer'

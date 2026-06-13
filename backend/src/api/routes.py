@@ -14,7 +14,7 @@ async def predict_traffic(request: PredictRequest, background_tasks: BackgroundT
     await asyncio.sleep(1)            # Brief pause to allow release
     
     state.processing_active = True  # Enable processing flag
-    background_tasks.add_task(process_video_streams, request.urls, request.intersection_id)
+    background_tasks.add_task(process_video_streams, request.urls, request.intersection_id, request.user_id)
     
     signal_timing = []
     for lane in ["north", "east", "south", "west"]:

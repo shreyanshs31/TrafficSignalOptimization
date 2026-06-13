@@ -30,3 +30,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+#database key
+src/database/supabase/supabaseKeys.py

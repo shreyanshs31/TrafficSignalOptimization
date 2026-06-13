@@ -34,14 +34,17 @@ class IntersectionAgent:
         acc_res = self.accident_model.predict(frame, conf=0.6, classes=[0], verbose=False)[0]
 
         # 2. Weighted Vehicle Counting (Standard PCE logic)
-        counts = {"cars": 0, "motorcycles": 0, "buses": 0, "trucks": 0}
+        emergency_count = len(a_res.boxes)
+        counts = {"cars": 0, "bikes": 0, "buses": 0, "trucks": 0, "emergency_vehicles": 0}
+        counts["emergency_vehicles"] = emergency_count
         weighted_sum = 0
+
         for box in t_res.boxes:
             cls = int(box.cls)
             weight = self.vehicle_weights.get(cls, 1.0)
             weighted_sum += weight
             if cls == 2: counts["cars"] += 1
-            elif cls == 3: counts["motorcycles"] += 1
+            elif cls == 3: counts["bikes"] += 1
             elif cls == 5: counts["buses"] += 1
             elif cls == 7: counts["trucks"] += 1
 
@@ -51,8 +54,6 @@ class IntersectionAgent:
         total_area = (frame_w - edge_margin)*(frame_h - edge_margin)
         self.simulator.input['density'] = min(100, (weighted_sum / total_area) * 100)
         self.simulator.input['urgency'] = 1 if is_emergency else 0
-        # self.simulator.input['waiting_time'] = 0
-        # current_waiting_time = self.simulator.get_lane_waiting_time(lane_id)
         # Compute fuzzy logic with validation
         fuzzy_output = validate_and_compute(
             self.simulator, 
@@ -104,5 +105,5 @@ class IntersectionAgent:
             "recommended_time": recommended_time,
             "accident_alert": alert_active,
             "accident_image": acc_img_encoded,
-            "stats": counts
+            "stats": counts,
         }

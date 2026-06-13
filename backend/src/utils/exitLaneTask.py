@@ -52,23 +52,3 @@ class ExitSensor:
             "status": "flowing" if is_flowing else "clear",
             "intensity": moving_pixels
         }
-
-# # Logic Verification (for testing)
-# if __name__ == "__main__":
-#     sensor = ExitSensor("north")
-#     # Using your camera or a video file for testing
-#     cap = cv2.VideoCapture(0) 
-    
-#     while True:
-#         ret, frame = cap.read()
-#         if not ret: break
-        
-#         data = sensor.process_frame(frame)
-#         if data["status"] == "flowing":
-#             print(f"✅ Flow Verified: Vehicles clearing {data['lane']}ward")
-            
-#         cv2.imshow(f"Exit Feed - {sensor.lane_id}", frame)
-#         if cv2.waitKey(1) & 0xFF == ord('q'):
-#             break
-#     cap.release()
-#     cv2.destroyAllWindows()

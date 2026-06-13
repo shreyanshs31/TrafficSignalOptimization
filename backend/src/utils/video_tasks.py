@@ -3,8 +3,9 @@ import time
 import cv2
 from typing import List
 from src.utils import state
+from src.database.supabase.supabaseClient import supabase
 
-async def process_video_streams(urls: List[str], intersection_id: str):
+async def process_video_streams(urls: List[str], intersection_id: str, user_id: str):
     """
     Background task that reads frames from URLs every 5 seconds 
     and updates the global traffic state.
@@ -43,10 +44,7 @@ async def process_video_streams(urls: List[str], intersection_id: str):
     
                     # Pass the wait time to the agent ---
                     results = await asyncio.to_thread(state.agent.process_lane, lane_id, frame, current_wait_time, multiplier)
-                    
-                    # Run AI Analysis using shared agent
-                    # results = await asyncio.to_thread(state.agent.process_lane, lane_id, frame, multiplier)
-                    
+    
                     # Update Timings via shared manager
                     state.manager.ai_timings[lane_id] = results["recommended_time"]
                     
@@ -58,6 +56,25 @@ async def process_video_streams(urls: List[str], intersection_id: str):
 
                     state.coordinator.update_lane_state(intersection_id, lane_id, {**results, "is_active": is_active})
                     print(f"✅ AI Processed {lane_id}: Vehicles = {sum(results['stats'].values())}, Priority Time = {results['recommended_time']}")
+
+                    try:
+                        # Grab the counts from your AI's results dictionary
+                        stats = results.get("stats", {})
+                        
+                        data_package = {
+                            "user_id": user_id,
+                            "Truck": stats.get("trucks", 0),
+                            "Bike": stats.get("bikes", 0),
+                            "Car": stats.get("cars", 0),
+                            "Bus": stats.get("buses", 0),
+                            "EmergencyVehicle": stats.get("emergency_vehicles", 0)
+                        }
+                        
+                        # Use the walkie-talkie!
+                        supabase.table('traffic_logs').insert(data_package).execute()
+                        print("📡 Successfully beamed live data to Supabase!")
+                    except Exception as db_error:
+                        print(f"🚨 Failed to push to Supabase: {db_error}")
                     
                 except Exception as lane_error:
                     print(f"🚨 AI PROCESSING ERROR on {lane_id} lane: {lane_error}")

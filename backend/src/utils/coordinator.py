@@ -1,7 +1,6 @@
 import logging
 import datetime
 
-# Setting up professional logging 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TrafficCoordinator")
 
@@ -16,9 +15,10 @@ class NetworkCoordinator:
         # Cumulative stats for Dashboard Pie Chart
         self.cumulative_counts = {
             "cars": 0, 
-            "motorcycles": 0, 
+            "bikes": 0, 
             "buses": 0, 
-            "trucks": 0
+            "trucks": 0,
+            "emergency_vehicles": 0 
         }
         
         # Hourly history for Dashboard Bar Chart
