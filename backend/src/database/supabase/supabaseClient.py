@@ -1,5 +1,5 @@
 from supabase import create_client, Client
-from supabaseKeys import urlKey, secretKey
+from .supabaseKeys import urlKey, secretKey
 
 url: str = urlKey
 key: str = secretKey
