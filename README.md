@@ -8,8 +8,8 @@ flow and minimising congestion. In addition to traffic optimisation, the system 
 identifies ambulances and provides priority by automatically controlling traffic signals, ensuring a clear path and reducing emergency response time.
 
 ## Demo
-
-[Insert gif or link to demo](https://github.com/shreyanshs31/TrafficSignalOptimization/blob/main/Screencast%20From%202026-06-14%2009-50-26.mp4)
+[![Watch the video]]
+(https://github.com/shreyanshs31/TrafficSignalOptimization/blob/main/Screencast%20From%202026-06-14%2009-50-26.mp4)
 
 
 ## Getting Started
