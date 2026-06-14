@@ -1,4 +1,8 @@
 
+
+
+
+
 # Traffic Signal Optimizer using Fuzzy Logic
 
 This project proposes an intelligent traffic signal
@@ -8,9 +12,7 @@ flow and minimising congestion. In addition to traffic optimisation, the system 
 identifies ambulances and provides priority by automatically controlling traffic signals, ensuring a clear path and reducing emergency response time.
 
 ## Demo
-[![Watch the video]]
-(https://github.com/shreyanshs31/TrafficSignalOptimization/blob/main/Screencast%20From%202026-06-14%2009-50-26.mp4)
-
+https://github.com/user-attachments/assets/7c0397a3-8204-42cc-a69c-14f059a0f48d
 
 ## Getting Started
 ### Prerequisites
